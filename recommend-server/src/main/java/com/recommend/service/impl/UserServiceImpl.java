@@ -10,6 +10,9 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 import java.util.ArrayList;
 
+/**
+ * @author liujiandong
+ */
 @Service
 @Slf4j
 public class UserServiceImpl implements UserService {
@@ -82,19 +85,34 @@ public class UserServiceImpl implements UserService {
     
     @Override
     public List<String> getUserTags(Long userId) {
-        // TODO: 实现获取用户标签的逻辑
-        return new ArrayList<>();
+        try {
+            // 通过用户标签关联表获取标签名称
+            return userMapper.selectUserTagNames(userId);
+        } catch (Exception e) {
+            log.error("获取用户标签失败，用户ID: {}", userId, e);
+            return new ArrayList<>();
+        }
     }
     
     @Override
     public List<String> getUserBehaviors(Long userId) {
-        // TODO: 实现获取用户行为的逻辑
-        return new ArrayList<>();
+        try {
+            // 获取用户最近的行为记录
+            return userMapper.selectUserBehaviors(userId);
+        } catch (Exception e) {
+            log.error("获取用户行为失败，用户ID: {}", userId, e);
+            return new ArrayList<>();
+        }
     }
     
     @Override
     public List<String> getUserOrders(Long userId) {
-        // TODO: 实现获取用户订单的逻辑
-        return new ArrayList<>();
+        try {
+            // 获取用户订单信息
+            return userMapper.selectUserOrders(userId);
+        } catch (Exception e) {
+            log.error("获取用户订单失败，用户ID: {}", userId, e);
+            return new ArrayList<>();
+        }
     }
 } 

@@ -9,13 +9,21 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 
+/**
+ * @author liujiandong
+ */
 @Service
 @Slf4j
 public class GameMasterTagServiceImpl implements GameMasterTagService {
     
     @Autowired
     private GameMasterTagMapper gameMasterTagMapper;
-    
+
+    @Override
+    public GameMasterTag getGameMasterTagById(Long id) {
+        return null;
+    }
+
     @Override
     public List<GameMasterTag> getGameMasterTagsByMasterId(Long masterId) {
         return gameMasterTagMapper.selectByMasterId(masterId);
@@ -36,7 +44,12 @@ public class GameMasterTagServiceImpl implements GameMasterTagService {
     public void addGameMasterTag(GameMasterTag gameMasterTag) {
         gameMasterTagMapper.insert(gameMasterTag);
     }
-    
+
+    @Override
+    public void updateGameMasterTag(GameMasterTag gameMasterTag) {
+
+    }
+
     @Override
     @Transactional
     public void updateGameMasterTagWeight(Long masterId, Long tagId, Double weight) {
@@ -48,7 +61,17 @@ public class GameMasterTagServiceImpl implements GameMasterTagService {
     public void deleteGameMasterTag(Long masterId, Long tagId) {
         gameMasterTagMapper.deleteByMasterIdAndTagId(masterId, tagId);
     }
-    
+
+    @Override
+    public void deleteGameMasterTag(Long masterId) {
+
+    }
+
+    @Override
+    public void batchAddGameMasterTags(Long masterId, List<Long> tagIds) {
+
+    }
+
     @Override
     @Transactional
     public void batchAddGameMasterTags(List<GameMasterTag> gameMasterTags) {
@@ -63,5 +86,10 @@ public class GameMasterTagServiceImpl implements GameMasterTagService {
         for (Long tagId : tagIds) {
             gameMasterTagMapper.deleteByMasterIdAndTagId(masterId, tagId);
         }
+    }
+
+    @Override
+    public void batchDeleteGameMasterTags(List<Long> masterIds) {
+
     }
 } 

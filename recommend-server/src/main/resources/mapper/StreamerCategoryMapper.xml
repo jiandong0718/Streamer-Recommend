@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.recommend.service.mapper.StreamerCategoryMapper">
+
+    <resultMap id="BaseResultMap" type="com.recommend.common.entity.StreamerCategory">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="streamer_id" property="streamerId" jdbcType="BIGINT"/>
+        <result column="category_id" property="categoryId" jdbcType="BIGINT"/>
+        <result column="level" property="level" jdbcType="INTEGER"/>
+        <result column="score" property="score" jdbcType="DECIMAL"/>
+        <result column="stream_count" property="streamCount" jdbcType="INTEGER"/>
+        <result column="status" property="status" jdbcType="INTEGER"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <select id="selectByStreamerId" resultMap="BaseResultMap">
+        SELECT * FROM streamer_category WHERE streamer_id = #{streamerId} AND status = 1
+    </select>
+
+    <select id="selectByCategoryId" resultMap="BaseResultMap">
+        SELECT * FROM streamer_category WHERE category_id = #{categoryId} AND status = 1
+    </select>
+
+    <select id="selectByScoreRange" resultMap="BaseResultMap">
+        SELECT * FROM streamer_category 
+        WHERE score BETWEEN #{minScore} AND #{maxScore} 
+        AND status = 1
+        ORDER BY score DESC
+    </select>
+
+    <select id="selectByStreamCountRange" resultMap="BaseResultMap">
+        SELECT * FROM streamer_category 
+        WHERE stream_count BETWEEN #{minStreamCount} AND #{maxStreamCount} 
+        AND status = 1
+        ORDER BY stream_count DESC
+    </select>
+
+    <update id="updateScore">
+        UPDATE streamer_category 
+        SET score = #{score}, update_time = NOW() 
+        WHERE streamer_id = #{streamerId} AND category_id = #{categoryId}
+    </update>
+
+    <update id="updateStreamCount">
+        UPDATE streamer_category 
+        SET stream_count = #{streamCount}, update_time = NOW() 
+        WHERE streamer_id = #{streamerId} AND category_id = #{categoryId}
+    </update>
+
+    <delete id="deleteByStreamerAndCategory">
+        DELETE FROM streamer_category 
+        WHERE streamer_id = #{streamerId} AND category_id = #{categoryId}
+    </delete>
+
+    <delete id="batchDeleteByStreamerAndCategories">
+        DELETE FROM streamer_category 
+        WHERE streamer_id = #{streamerId} 
+        AND category_id IN
+        <foreach collection="categoryIds" item="categoryId" open="(" separator="," close=")">
+            #{categoryId}
+        </foreach>
+    </delete>
+
+</mapper> 

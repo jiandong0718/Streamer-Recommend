@@ -123,7 +123,7 @@ public class RecommendMonitorTask {
                         .message(String.format("System load is %.2f, exceeding threshold of %.2f",
                             usage.getSystemLoad(),
                             MonitorConfig.AlertThresholdConfig.SYSTEM_LOAD_THRESHOLD))
-                        .level(RecommendAlertService.AlertLevel.WARNING)
+                        .level(AlertLevel.WARNING)
                         .build()
                 );
             }
@@ -136,7 +136,7 @@ public class RecommendMonitorTask {
                         .message(String.format("CPU usage is %.2f%%, exceeding threshold of %.2f%%",
                             usage.getCpuUsage() * 100,
                             MonitorConfig.AlertThresholdConfig.SYSTEM_LOAD_THRESHOLD * 100))
-                        .level(RecommendAlertService.AlertLevel.WARNING)
+                        .level(AlertLevel.WARNING)
                         .build()
                 );
             }
@@ -149,7 +149,7 @@ public class RecommendMonitorTask {
                         .message(String.format("Memory usage is %.2f%%, exceeding threshold of %.2f%%",
                             usage.getMemoryUsage() * 100,
                             MonitorConfig.AlertThresholdConfig.MEMORY_USAGE_THRESHOLD * 100))
-                        .level(RecommendAlertService.AlertLevel.WARNING)
+                        .level(AlertLevel.WARNING)
                         .build()
                 );
             }
@@ -161,7 +161,7 @@ public class RecommendMonitorTask {
                         .title("Deadlocked Threads Detected")
                         .message(String.format("Found %d deadlocked threads",
                             usage.getDeadlockedThreadCount()))
-                        .level(RecommendAlertService.AlertLevel.ERROR)
+                        .level(AlertLevel.ERROR)
                         .build()
                 );
             }

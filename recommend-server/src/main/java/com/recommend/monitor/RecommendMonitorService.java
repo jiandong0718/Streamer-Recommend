@@ -11,7 +11,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 
+/**
+ * @author liujiandong
+ */
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -20,6 +25,18 @@ public class RecommendMonitorService {
     private final RecommendMetricsCollector metricsCollector;
     private static final String METRICS_DIR = "metrics";
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
+    
+    private RecommendMetricsSnapshot latestSnapshot;
+    
+    /**
+     * 获取最新的指标快照
+     */
+    public RecommendMetricsSnapshot getLatestMetricsSnapshot() {
+        if (latestSnapshot == null) {
+            latestSnapshot = metricsCollector.getMetricsSnapshot();
+        }
+        return latestSnapshot;
+    }
     
     /**
      * 每小时收集一次指标
@@ -127,4 +144,24 @@ public class RecommendMonitorService {
             return "Error retrieving metrics";
         }
     }
-} 
+
+    public Map<String, Object> getRecentAlerts(int count) {
+        return new HashMap<>();
+    }
+
+    public Map<String, Object> getSystemResources() {
+        return new HashMap<>();
+    }
+
+    public Map<String, Object> getMetrics(String type) {
+        return null;
+    }
+
+    public void collectMetrics() {
+
+    }
+
+    public void cleanupData() {
+
+    }
+}

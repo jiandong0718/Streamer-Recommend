@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.recommend.service.mapper.UserProfileMapper">
+
+    <resultMap id="BaseResultMap" type="com.recommend.common.entity.UserProfile">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="user_id" property="userId" jdbcType="BIGINT"/>
+        <result column="age" property="age" jdbcType="INTEGER"/>
+        <result column="gender" property="gender" jdbcType="VARCHAR"/>
+        <result column="region" property="region" jdbcType="VARCHAR"/>
+        <result column="register_time" property="registerTime" jdbcType="TIMESTAMP"/>
+        <result column="device_type" property="deviceType" jdbcType="VARCHAR"/>
+        <result column="os_type" property="osType" jdbcType="VARCHAR"/>
+        <result column="game_types" property="gameTypes" jdbcType="VARCHAR"/>
+        <result column="play_frequency" property="playFrequency" jdbcType="VARCHAR"/>
+        <result column="skill_level" property="skillLevel" jdbcType="VARCHAR"/>
+        <result column="total_game_time" property="totalGameTime" jdbcType="INTEGER"/>
+        <result column="win_rate" property="winRate" jdbcType="DECIMAL"/>
+        <result column="total_watch_time" property="totalWatchTime" jdbcType="INTEGER"/>
+        <result column="total_interaction_count" property="totalInteractionCount" jdbcType="INTEGER"/>
+        <result column="total_consumption" property="totalConsumption" jdbcType="DECIMAL"/>
+        <result column="last_active_time" property="lastActiveTime" jdbcType="TIMESTAMP"/>
+        <result column="current_game" property="currentGame" jdbcType="VARCHAR"/>
+        <result column="online_status" property="onlineStatus" jdbcType="VARCHAR"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <select id="selectByUserId" resultMap="BaseResultMap">
+        SELECT * FROM user_profile WHERE user_id = #{userId}
+    </select>
+
+    <select id="selectByRegion" resultMap="BaseResultMap">
+        SELECT * FROM user_profile WHERE region = #{region}
+    </select>
+
+    <select id="selectByAgeRange" resultMap="BaseResultMap">
+        SELECT * FROM user_profile 
+        WHERE age BETWEEN #{minAge} AND #{maxAge}
+    </select>
+
+    <select id="selectByGender" resultMap="BaseResultMap">
+        SELECT * FROM user_profile WHERE gender = #{gender}
+    </select>
+
+    <update id="updateByUserId">
+        UPDATE user_profile 
+        SET age = #{userProfile.age},
+            gender = #{userProfile.gender},
+            region = #{userProfile.region},
+            device_type = #{userProfile.deviceType},
+            os_type = #{userProfile.osType},
+            game_types = #{userProfile.gameTypes},
+            play_frequency = #{userProfile.playFrequency},
+            skill_level = #{userProfile.skillLevel},
+            total_game_time = #{userProfile.totalGameTime},
+            win_rate = #{userProfile.winRate},
+            total_watch_time = #{userProfile.totalWatchTime},
+            total_interaction_count = #{userProfile.totalInteractionCount},
+            total_consumption = #{userProfile.totalConsumption},
+            last_active_time = #{userProfile.lastActiveTime},
+            current_game = #{userProfile.currentGame},
+            online_status = #{userProfile.onlineStatus},
+            update_time = NOW()
+        WHERE user_id = #{userId}
+    </update>
+
+</mapper> 

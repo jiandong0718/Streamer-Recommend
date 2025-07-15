@@ -2,14 +2,16 @@ package com.recommend.algorithm.impl;
 
 import com.recommend.algorithm.RecommendAlgorithm;
 import com.recommend.algorithm.RecommendMetrics;
-import com.recommend.common.entity.GameMaster;
-import com.recommend.common.entity.Game;
+import com.recommend.common.entity.*;
+import com.recommend.common.utils.MathUtils;
 import com.recommend.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import lombok.extern.slf4j.Slf4j;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static java.lang.Math.*;
 
 @Component
 @Slf4j
@@ -32,6 +34,12 @@ public class ContentBasedAlgorithm implements RecommendAlgorithm {
     
     @Autowired
     private TagService tagService;
+
+    @Autowired
+    private UserBehaviorService userBehaviorService;
+
+    @Autowired
+    private OrderService orderService;
     
     // 用户-标签权重矩阵
     private Map<Long, Map<Long, Double>> userTagWeights;
@@ -147,7 +155,7 @@ public class ContentBasedAlgorithm implements RecommendAlgorithm {
     public void updateMasterFeatures(Long masterId) {
         // 1. 获取游戏陪玩的标签数据
         List<Long> masterTags = gameMasterTagService.getGameMasterTagsByMasterId(masterId).stream()
-                .map(masterTag -> masterTag.getTagId())
+                .map(GameMasterTag::getTagId)
                 .collect(Collectors.toList());
         
         // 2. 计算标签权重
@@ -311,7 +319,7 @@ public class ContentBasedAlgorithm implements RecommendAlgorithm {
             return 0.0;
         }
         
-        return dotProduct / (Math.sqrt(norm1) * Math.sqrt(norm2));
+        return dotProduct / (sqrt(norm1) * sqrt(norm2));
     }
     
     private List<Long> getTestUsers() {
@@ -322,7 +330,7 @@ public class ContentBasedAlgorithm implements RecommendAlgorithm {
         int testSize = (int) (allUsers.size() * 0.2);
         Collections.shuffle(allUsers);
         
-        return allUsers.subList(0, Math.min(testSize, allUsers.size()));
+        return allUsers.subList(0, min(testSize, allUsers.size()));
     }
     
     private List<Long> getTestMasters() {
@@ -333,7 +341,7 @@ public class ContentBasedAlgorithm implements RecommendAlgorithm {
         int testSize = (int) (allMasters.size() * 0.2);
         Collections.shuffle(allMasters);
         
-        return allMasters.subList(0, Math.min(testSize, allMasters.size()));
+        return allMasters.subList(0, min(testSize, allMasters.size()));
     }
     
     private List<Long> getTestGames() {
@@ -344,7 +352,7 @@ public class ContentBasedAlgorithm implements RecommendAlgorithm {
         int testSize = (int) (allGames.size() * 0.2);
         Collections.shuffle(allGames);
         
-        return allGames.subList(0, Math.min(testSize, allGames.size()));
+        return allGames.subList(0, min(testSize, allGames.size()));
     }
     
     private double calculatePrecision(List<Long> testUsers, List<Long> testMasters) {
@@ -360,7 +368,7 @@ public class ContentBasedAlgorithm implements RecommendAlgorithm {
             
             // 2. 获取用户实际交互的游戏陪玩
             List<Long> actualMasters = userBehaviorService.getUserBehaviorsByUserId(userId).stream()
-                    .filter(behavior -> behavior.getType() == 3) // 下单行为
+                    .filter(behavior -> "3".equals(behavior.getType())) // 下单行为
                     .map(UserBehavior::getTargetId)
                     .collect(Collectors.toList());
             
@@ -387,7 +395,7 @@ public class ContentBasedAlgorithm implements RecommendAlgorithm {
             
             // 2. 获取用户实际交互的游戏陪玩
             List<Long> actualMasters = userBehaviorService.getUserBehaviorsByUserId(userId).stream()
-                    .filter(behavior -> behavior.getType() == 3) // 下单行为
+                    .filter(behavior -> Objects.equals(behavior.getType(), "3")) // 下单行为
                     .map(UserBehavior::getTargetId)
                     .collect(Collectors.toList());
             
@@ -418,7 +426,7 @@ public class ContentBasedAlgorithm implements RecommendAlgorithm {
             
             // 2. 获取用户实际交互的游戏陪玩
             List<Long> actualMasters = userBehaviorService.getUserBehaviorsByUserId(userId).stream()
-                    .filter(behavior -> behavior.getType() == 3) // 下单行为
+                    .filter(behavior -> behavior.getType() == "3") // 下单行为
                     .map(UserBehavior::getTargetId)
                     .collect(Collectors.toList());
             
@@ -450,7 +458,7 @@ public class ContentBasedAlgorithm implements RecommendAlgorithm {
             
             // 2. 获取用户实际交互的游戏陪玩及其评分
             Map<Long, Double> actualRatings = userBehaviorService.getUserBehaviorsByUserId(userId).stream()
-                    .filter(behavior -> behavior.getType() == 3) // 下单行为
+                    .filter(behavior -> Objects.equals(behavior.getType(), "3")) // 下单行为
                     .collect(Collectors.toMap(
                             UserBehavior::getTargetId,
                             behavior -> 1.0 // 简化处理，实际应该使用真实评分
@@ -465,7 +473,7 @@ public class ContentBasedAlgorithm implements RecommendAlgorithm {
             for (int i = 0; i < recommendations.size(); i++) {
                 Long masterId = recommendations.get(i).getId();
                 if (actualRatings.containsKey(masterId)) {
-                    dcg += actualRatings.get(masterId) / Math.log2(i + 2);
+                    dcg += actualRatings.get(masterId) / MathUtils.log2(i + 2);
                 }
             }
             
@@ -473,8 +481,8 @@ public class ContentBasedAlgorithm implements RecommendAlgorithm {
             double idcg = 0.0;
             List<Double> idealRatings = new ArrayList<>(actualRatings.values());
             Collections.sort(idealRatings, Collections.reverseOrder());
-            for (int i = 0; i < Math.min(idealRatings.size(), recommendations.size()); i++) {
-                idcg += idealRatings.get(i) / Math.log2(i + 2);
+            for (int i = 0; i < min(idealRatings.size(), recommendations.size()); i++) {
+                idcg += idealRatings.get(i) / MathUtils.log2(i + 2);
             }
             
             // 5. 计算NDCG
@@ -544,7 +552,7 @@ public class ContentBasedAlgorithm implements RecommendAlgorithm {
             
             // 2. 获取用户历史交互的游戏陪玩
             Set<Long> historicalMasters = userBehaviorService.getUserBehaviorsByUserId(userId).stream()
-                    .filter(behavior -> behavior.getType() == 3) // 下单行为
+                    .filter(behavior -> Objects.equals(behavior.getType(), "3")) // 下单行为
                     .map(UserBehavior::getTargetId)
                     .collect(Collectors.toSet());
             
@@ -577,7 +585,7 @@ public class ContentBasedAlgorithm implements RecommendAlgorithm {
                 if (lastActiveTime != null) {
                     long timeDiff = System.currentTimeMillis() - lastActiveTime.getTime();
                     double daysDiff = timeDiff / (24.0 * 60 * 60 * 1000);
-                    userTimeliness += Math.exp(-daysDiff / 7.0); // 7天为半衰期
+                    userTimeliness += exp(-daysDiff / 7.0); // 7天为半衰期
                 }
             }
             
@@ -603,7 +611,7 @@ public class ContentBasedAlgorithm implements RecommendAlgorithm {
                 
                 // 获取用户实际交互的游戏陪玩
                 List<Long> actualMasters = userBehaviorService.getUserBehaviorsByUserId(userId).stream()
-                        .filter(behavior -> behavior.getType() == 3) // 下单行为
+                        .filter(behavior -> behavior.getType() == "3") // 下单行为
                         .map(UserBehavior::getTargetId)
                         .collect(Collectors.toList());
                 

@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
+import java.util.Arrays;
 
 @Service
 @Slf4j
@@ -26,11 +27,10 @@ public class RecallService {
         UserProfile userProfile = userProfileService.getUserProfile(userId);
         
         // 2. 多路召回
-        List<GameMaster> candidates = new ArrayList<>();
-        
+
         // 2.1 基于标签的召回
-        List<GameMaster> tagBasedCandidates = recallByTags(userProfile.getTags());
-        candidates.addAll(tagBasedCandidates);
+        List<GameMaster> tagBasedCandidates = recallByTags(userProfile);
+        List<GameMaster> candidates = new ArrayList<>(tagBasedCandidates);
         
         // 2.2 基于相似用户的召回
         List<GameMaster> similarUserCandidates = recallBySimilarUsers(userId);
@@ -46,10 +46,15 @@ public class RecallService {
             .collect(Collectors.toList());
     }
     
-    private List<GameMaster> recallByTags(List<String> tags) {
-        if (tags == null || tags.isEmpty()) {
+    private List<GameMaster> recallByTags(UserProfile userProfile) {
+        // 从用户画像中获取游戏类型偏好
+        String gameTypes = userProfile.getGameTypes();
+        if (gameTypes == null || gameTypes.isEmpty()) {
             return new ArrayList<>();
         }
+        
+        // 将游戏类型字符串转换为标签列表
+        List<String> tags = Arrays.asList(gameTypes.split(","));
         return gameMasterMapper.findByTags(tags);
     }
     

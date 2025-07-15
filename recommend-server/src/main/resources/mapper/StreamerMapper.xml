@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.recommend.service.mapper.StreamerMapper">
+
+    <resultMap id="BaseResultMap" type="com.recommend.common.entity.Streamer">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="user_id" property="userId" jdbcType="BIGINT"/>
+        <result column="nickname" property="nickname" jdbcType="VARCHAR"/>
+        <result column="avatar" property="avatar" jdbcType="VARCHAR"/>
+        <result column="gender" property="gender" jdbcType="VARCHAR"/>
+        <result column="age" property="age" jdbcType="INTEGER"/>
+        <result column="region" property="region" jdbcType="VARCHAR"/>
+        <result column="level" property="level" jdbcType="INTEGER"/>
+        <result column="score" property="score" jdbcType="DECIMAL"/>
+        <result column="stream_count" property="streamCount" jdbcType="INTEGER"/>
+        <result column="fans_count" property="fansCount" jdbcType="INTEGER"/>
+        <result column="online_status" property="onlineStatus" jdbcType="INTEGER"/>
+        <result column="room_title" property="roomTitle" jdbcType="VARCHAR"/>
+        <result column="room_cover" property="roomCover" jdbcType="VARCHAR"/>
+        <result column="category" property="category" jdbcType="VARCHAR"/>
+        <result column="status" property="status" jdbcType="INTEGER"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <select id="searchStreamers" resultMap="BaseResultMap">
+        SELECT * FROM streamer 
+        WHERE status = COALESCE(#{status}, 1)
+        <if test="keyword != null and keyword != ''">
+            AND (nickname LIKE CONCAT('%', #{keyword}, '%') OR room_title LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="selectByRegion" resultMap="BaseResultMap">
+        SELECT * FROM streamer WHERE region = #{region} AND status = 1
+    </select>
+
+    <select id="selectByStatus" resultMap="BaseResultMap">
+        SELECT * FROM streamer WHERE status = #{status}
+    </select>
+
+    <select id="selectByScoreRange" resultMap="BaseResultMap">
+        SELECT * FROM streamer 
+        WHERE score BETWEEN #{minScore} AND #{maxScore} 
+        AND status = 1
+        ORDER BY score DESC
+    </select>
+
+    <select id="selectByCategory" resultMap="BaseResultMap">
+        SELECT s.* FROM streamer s
+        INNER JOIN streamer_category sc ON s.id = sc.streamer_id
+        WHERE sc.category_id = #{categoryId} AND s.status = 1
+    </select>
+
+    <select id="findByTags" resultMap="BaseResultMap">
+        SELECT DISTINCT s.* FROM streamer s
+        INNER JOIN streamer_tag st ON s.id = st.streamer_id
+        INNER JOIN tag t ON st.tag_id = t.id
+        WHERE t.name IN
+        <foreach collection="tags" item="tag" open="(" separator="," close=")">
+            #{tag}
+        </foreach>
+        AND s.status = 1
+    </select>
+
+    <update id="updateScore">
+        UPDATE streamer SET score = #{score}, update_time = NOW() WHERE id = #{streamerId}
+    </update>
+
+    <select id="selectStreamerProfile" resultMap="BaseResultMap">
+        SELECT * FROM streamer WHERE id = #{streamerId} AND status = 1
+    </select>
+
+    <select id="selectStreamerTags" resultType="java.lang.String">
+        SELECT t.name FROM tag t
+        INNER JOIN streamer_tag st ON t.id = st.tag_id
+        WHERE st.streamer_id = #{streamerId} AND st.status = 1
+    </select>
+
+    <select id="selectStreamerCategories" resultType="java.lang.String">
+        SELECT c.name FROM category c
+        INNER JOIN streamer_category sc ON c.id = sc.category_id
+        WHERE sc.streamer_id = #{streamerId} AND sc.status = 1
+    </select>
+
+    <select id="selectStreamerOrders" resultType="java.lang.String">
+        SELECT CONCAT('订单-', id) FROM `order` WHERE streamer_id = #{streamerId}
+    </select>
+
+    <select id="selectRecommendStreamers" resultMap="BaseResultMap">
+        SELECT * FROM streamer 
+        WHERE status = 1
+        <if test="categoryId != null">
+            AND id IN (SELECT streamer_id FROM streamer_category WHERE category_id = #{categoryId})
+        </if>
+        ORDER BY score DESC, fans_count DESC
+        LIMIT #{limit}
+    </select>
+
+</mapper> 

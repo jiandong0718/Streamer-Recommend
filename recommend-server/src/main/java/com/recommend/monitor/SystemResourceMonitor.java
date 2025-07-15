@@ -121,8 +121,8 @@ public class SystemResourceMonitor {
     /**
      * 系统资源使用情况
      */
-    @Data
-    @Builder
+    @lombok.Data
+    @lombok.Builder
     public static class SystemResourceUsage {
         private double systemLoad;
         private double cpuUsage;

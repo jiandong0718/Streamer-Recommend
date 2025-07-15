@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.extern.slf4j.Slf4j;
+
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -78,7 +80,7 @@ public class GameMasterServiceImpl implements GameMasterService {
     public void updateGameMasterScore(Long masterId, Double score) {
         GameMaster gameMaster = new GameMaster();
         gameMaster.setId(masterId);
-        gameMaster.setScore(score);
+        gameMaster.setScore(new BigDecimal(score));
         gameMasterMapper.updateById(gameMaster);
     }
     

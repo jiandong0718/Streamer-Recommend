@@ -36,17 +36,17 @@ public interface GameMasterGameService {
     /**
      * 更新陪玩游戏评分
      */
-    void updateGameMasterGameScore(Long masterId, Long gameId, Double score);
+    void updateGameMasterGameScore(Long gameId, Double score);
     
     /**
      * 更新陪玩游戏订单数量
      */
-    void updateGameMasterGameOrderCount(Long masterId, Long gameId, Integer orderCount);
+    void updateGameMasterGameOrderCount(Long gameId, Integer orderCount);
     
     /**
      * 删除陪玩游戏
      */
-    void deleteGameMasterGame(Long masterId, Long gameId);
+    void deleteGameMasterGame(Long gameId);
     
     /**
      * 批量添加陪玩游戏
@@ -56,5 +56,7 @@ public interface GameMasterGameService {
     /**
      * 批量删除陪玩游戏
      */
-    void batchDeleteGameMasterGames(Long masterId, List<Long> gameIds);
-} 
+    void batchDeleteGameMasterGames(List<Long> gameIds);
+
+    GameMasterGame getGameMasterGameById(Long id);
+}

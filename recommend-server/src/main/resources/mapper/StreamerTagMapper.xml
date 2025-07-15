@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.recommend.service.mapper.StreamerTagMapper">
+
+    <resultMap id="BaseResultMap" type="com.recommend.common.entity.StreamerTag">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="streamer_id" property="streamerId" jdbcType="BIGINT"/>
+        <result column="tag_id" property="tagId" jdbcType="BIGINT"/>
+        <result column="weight" property="weight" jdbcType="DECIMAL"/>
+        <result column="source" property="source" jdbcType="INTEGER"/>
+        <result column="status" property="status" jdbcType="INTEGER"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <select id="selectByStreamerId" resultMap="BaseResultMap">
+        SELECT * FROM streamer_tag WHERE streamer_id = #{streamerId} AND status = 1
+    </select>
+
+    <select id="selectByTagId" resultMap="BaseResultMap">
+        SELECT * FROM streamer_tag WHERE tag_id = #{tagId} AND status = 1
+    </select>
+
+    <select id="selectByWeightRange" resultMap="BaseResultMap">
+        SELECT * FROM streamer_tag 
+        WHERE weight BETWEEN #{minWeight} AND #{maxWeight} 
+        AND status = 1
+        ORDER BY weight DESC
+    </select>
+
+    <update id="updateWeight">
+        UPDATE streamer_tag 
+        SET weight = #{weight}, update_time = NOW() 
+        WHERE streamer_id = #{streamerId} AND tag_id = #{tagId}
+    </update>
+
+    <delete id="deleteByStreamerAndTag">
+        DELETE FROM streamer_tag 
+        WHERE streamer_id = #{streamerId} AND tag_id = #{tagId}
+    </delete>
+
+    <delete id="batchDeleteByStreamerAndTags">
+        DELETE FROM streamer_tag 
+        WHERE streamer_id = #{streamerId} 
+        AND tag_id IN
+        <foreach collection="tagIds" item="tagId" open="(" separator="," close=")">
+            #{tagId}
+        </foreach>
+    </delete>
+
+    <select id="selectTagWeight" resultType="java.math.BigDecimal">
+        SELECT weight FROM streamer_tag 
+        WHERE streamer_id = #{streamerId} AND tag_id = #{tagId} AND status = 1
+    </select>
+
+    <select id="calculateTagSimilarity" resultType="java.lang.Double">
+        SELECT COALESCE(
+            (SELECT SUM(LEAST(st1.weight, st2.weight)) 
+             FROM streamer_tag st1 
+             JOIN streamer_tag st2 ON st1.tag_id = st2.tag_id 
+             WHERE st1.streamer_id = #{streamerId1} 
+             AND st2.streamer_id = #{streamerId2} 
+             AND st1.status = 1 AND st2.status = 1) / 
+            (SELECT SQRT(SUM(st1.weight * st1.weight)) * SQRT(SUM(st2.weight * st2.weight))
+             FROM streamer_tag st1, streamer_tag st2
+             WHERE st1.streamer_id = #{streamerId1} 
+             AND st2.streamer_id = #{streamerId2}
+             AND st1.status = 1 AND st2.status = 1), 
+            0.0
+        ) AS similarity
+    </select>
+
+</mapper> 

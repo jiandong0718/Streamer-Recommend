@@ -1,14 +1,15 @@
 package com.recommend.monitor;
 
-import com.recommend.monitor.RecommendMetricsSnapshot;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Service;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -119,7 +120,7 @@ public class RecommendDataStorageService {
                 .limit(count)
                 .map(key -> (RecommendAlertService.Alert) redisTemplate.opsForValue().get(key))
                 .filter(Objects::nonNull)
-                .toList();
+                .collect(Collectors.toList());
         } catch (Exception e) {
             log.error("Error retrieving recent alerts", e);
             return Collections.emptyList();
@@ -160,7 +161,7 @@ public class RecommendDataStorageService {
                 .sorted()
                 .map(key -> (SystemResourceMonitor.SystemResourceUsage) redisTemplate.opsForValue().get(key))
                 .filter(Objects::nonNull)
-                .toList();
+                .collect(Collectors.toList());
         } catch (Exception e) {
             log.error("Error retrieving system resource history", e);
             return Collections.emptyList();
@@ -230,7 +231,7 @@ public class RecommendDataStorageService {
                 .sorted()
                 .map(key -> (RecommendMetricsSnapshot) redisTemplate.opsForValue().get(key))
                 .filter(Objects::nonNull)
-                .toList();
+                .collect(Collectors.toList());
         } catch (Exception e) {
             log.error("Error retrieving time series data", e);
             return Collections.emptyList();

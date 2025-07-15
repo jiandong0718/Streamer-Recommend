@@ -13,8 +13,28 @@
     </select>
     
     <!-- 更新用户最后登录时间 -->
-    <update id="updateLastLoginTime">
+        <update id="updateLastLoginTime">
         UPDATE user SET last_login_time = NOW() WHERE id = #{userId}
     </update>
-    
+
+    <select id="selectUserTagNames" resultType="java.lang.String">
+        SELECT t.name FROM tag t
+        INNER JOIN user_tag ut ON t.id = ut.tag_id
+        WHERE ut.user_id = #{userId} AND ut.status = 1
+    </select>
+
+    <select id="selectUserBehaviors" resultType="java.lang.String">
+        SELECT CONCAT(type, ':', target_type, ':', target_id) FROM user_behavior
+        WHERE user_id = #{userId}
+        ORDER BY create_time DESC
+        LIMIT 10
+    </select>
+
+    <select id="selectUserOrders" resultType="java.lang.String">
+        SELECT CONCAT('订单-', id, ':', status) FROM `order`
+        WHERE user_id = #{userId}
+        ORDER BY create_time DESC
+        LIMIT 10
+    </select>
+
 </mapper> 

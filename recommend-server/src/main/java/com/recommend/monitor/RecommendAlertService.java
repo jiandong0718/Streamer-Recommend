@@ -1,189 +1,203 @@
 package com.recommend.monitor;
 
-import com.recommend.monitor.RecommendMetricsSnapshot;
-import org.springframework.stereotype.Service;
+import lombok.Builder;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import java.util.*;
+import org.springframework.stereotype.Service;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class RecommendAlertService {
-    
+
+    public static AlertLevel alertLevel;
     private final RecommendMonitorService monitorService;
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     
     // 告警阈值配置
     private static final double ERROR_RATE_THRESHOLD = 0.1; // 10%错误率
-    private static final double RESPONSE_TIME_THRESHOLD = 1000.0; // 1000ms
-    private static final double CACHE_HIT_RATE_THRESHOLD = 0.5; // 50%缓存命中率
-    private static final double QUALITY_METRIC_THRESHOLD = 0.6; // 60%质量指标
+    private static final double RESPONSE_TIME_THRESHOLD = 1000.0; // 1秒响应时间
+    private static final double CACHE_HIT_RATE_THRESHOLD = 0.8; // 80%缓存命中率
+    private static final double MEMORY_USAGE_THRESHOLD = 0.85; // 85%内存使用率
     
-    // 告警级别
-    public enum AlertLevel {
-        INFO, WARNING, ERROR, CRITICAL
-    }
+    // 告警历史记录
+    private final Map<String, Alert> alertHistory = new ConcurrentHashMap<>();
     
     /**
-     * 检查系统状态并生成告警
+     * 检查系统健康状态并触发告警
      */
-    public List<Alert> checkSystemStatus() {
-        List<Alert> alerts = new ArrayList<>();
-        RecommendMetricsSnapshot snapshot = monitorService.getLatestMetricsSnapshot();
-        
-        // 检查错误率
-        if (snapshot.getFailureRate() > ERROR_RATE_THRESHOLD) {
-            alerts.add(createAlert(
-                "High Error Rate",
-                String.format("Error rate is %.2f%%, exceeding threshold of %.2f%%",
-                    snapshot.getFailureRate() * 100,
-                    ERROR_RATE_THRESHOLD * 100),
-                AlertLevel.ERROR
-            ));
+    public void checkSystemHealth() {
+        try {
+            RecommendMetricsSnapshot snapshot = monitorService.getLatestMetricsSnapshot();
+            
+            // 检查错误率
+            checkErrorRate(snapshot);
+            
+            // 检查响应时间
+            checkResponseTime(snapshot);
+            
+            // 检查缓存命中率
+            checkCacheHitRate(snapshot);
+            
+            // 检查内存使用率
+            checkMemoryUsage(snapshot);
+            
+        } catch (Exception e) {
+            log.error("检查系统健康状态时发生错误", e);
+            triggerAlert("SYSTEM_CHECK_ERROR", "HIGH", "系统健康检查失败: " + e.getMessage());
         }
-        
-        // 检查响应时间
-        if (snapshot.getAverageResponseTime() > RESPONSE_TIME_THRESHOLD) {
-            alerts.add(createAlert(
-                "High Response Time",
-                String.format("Average response time is %.2fms, exceeding threshold of %.2fms",
-                    snapshot.getAverageResponseTime(),
-                    RESPONSE_TIME_THRESHOLD),
-                AlertLevel.WARNING
-            ));
-        }
-        
-        // 检查缓存命中率
-        if (snapshot.getCacheHitRate() < CACHE_HIT_RATE_THRESHOLD) {
-            alerts.add(createAlert(
-                "Low Cache Hit Rate",
-                String.format("Cache hit rate is %.2f%%, below threshold of %.2f%%",
-                    snapshot.getCacheHitRate() * 100,
-                    CACHE_HIT_RATE_THRESHOLD * 100),
-                AlertLevel.WARNING
-            ));
-        }
-        
-        // 检查推荐质量指标
-        checkQualityMetrics(snapshot, alerts);
-        
-        return alerts;
     }
     
-    /**
-     * 检查推荐质量指标
-     */
-    private void checkQualityMetrics(RecommendMetricsSnapshot snapshot, List<Alert> alerts) {
-        // 检查准确率
-        if (snapshot.getAveragePrecision() < QUALITY_METRIC_THRESHOLD) {
-            alerts.add(createAlert(
-                "Low Precision",
-                String.format("Average precision is %.2f, below threshold of %.2f",
-                    snapshot.getAveragePrecision(),
-                    QUALITY_METRIC_THRESHOLD),
-                AlertLevel.WARNING
-            ));
+    private void checkErrorRate(RecommendMetricsSnapshot snapshot) {
+        double errorRate = snapshot.getErrorRate();
+        if (errorRate > ERROR_RATE_THRESHOLD) {
+            triggerAlert("HIGH_ERROR_RATE", "HIGH", 
+                String.format("错误率过高: %.2f%% (阈值: %.2f%%)", 
+                    errorRate * 100, ERROR_RATE_THRESHOLD * 100));
         }
-        
-        // 检查召回率
-        if (snapshot.getAverageRecall() < QUALITY_METRIC_THRESHOLD) {
-            alerts.add(createAlert(
-                "Low Recall",
-                String.format("Average recall is %.2f, below threshold of %.2f",
-                    snapshot.getAverageRecall(),
-                    QUALITY_METRIC_THRESHOLD),
-                AlertLevel.WARNING
-            ));
+    }
+    
+    private void checkResponseTime(RecommendMetricsSnapshot snapshot) {
+        double avgResponseTime = snapshot.getAverageResponseTime();
+        if (avgResponseTime > RESPONSE_TIME_THRESHOLD) {
+            triggerAlert("HIGH_RESPONSE_TIME", "MEDIUM", 
+                String.format("响应时间过长: %.2fms (阈值: %.2fms)", 
+                    avgResponseTime, RESPONSE_TIME_THRESHOLD));
         }
-        
-        // 检查多样性
-        if (snapshot.getDiversity() < QUALITY_METRIC_THRESHOLD) {
-            alerts.add(createAlert(
-                "Low Diversity",
-                String.format("Diversity score is %.2f, below threshold of %.2f",
-                    snapshot.getDiversity(),
-                    QUALITY_METRIC_THRESHOLD),
-                AlertLevel.INFO
-            ));
+    }
+    
+    private void checkCacheHitRate(RecommendMetricsSnapshot snapshot) {
+        double cacheHitRate = snapshot.getCacheHitRate();
+        if (cacheHitRate < CACHE_HIT_RATE_THRESHOLD) {
+            triggerAlert("LOW_CACHE_HIT_RATE", "MEDIUM", 
+                String.format("缓存命中率过低: %.2f%% (阈值: %.2f%%)", 
+                    cacheHitRate * 100, CACHE_HIT_RATE_THRESHOLD * 100));
+        }
+    }
+    
+    private void checkMemoryUsage(RecommendMetricsSnapshot snapshot) {
+        double memoryUsage = snapshot.getMemoryUsage();
+        if (memoryUsage > MEMORY_USAGE_THRESHOLD) {
+            triggerAlert("HIGH_MEMORY_USAGE", "HIGH", 
+                String.format("内存使用率过高: %.2f%% (阈值: %.2f%%)", 
+                    memoryUsage * 100, MEMORY_USAGE_THRESHOLD * 100));
         }
     }
     
     /**
-     * 创建告警对象
+     * 触发告警
      */
-    private Alert createAlert(String title, String message, AlertLevel level) {
-        return Alert.builder()
-            .title(title)
-            .message(message)
+    private void triggerAlert(String alertId, String level, String message) {
+        Alert alert = Alert.builder()
+            .id(alertId)
             .level(level)
+            .message(message)
             .timestamp(LocalDateTime.now())
+            .source("RecommendSystem")
+            .resolved(false)
             .build();
-    }
-    
-    /**
-     * 告警对象
-     */
-    @Data
-    @Builder
-    public static class Alert {
-        private String title;
-        private String message;
-        private AlertLevel level;
-        private LocalDateTime timestamp;
         
-        @Override
-        public String toString() {
-            return String.format("[%s] %s - %s (%s)",
-                level,
-                title,
-                message,
-                timestamp.format(DATE_FORMATTER)
-            );
-        }
+        alertHistory.put(alertId, alert);
+        
+        // 发送告警通知
+        sendAlertNotification(alert);
+        
+        // 记录告警日志
+        log.warn("告警触发: [{}] {} - {}", level, alertId, message);
     }
     
     /**
      * 发送告警通知
      */
-    public void sendAlertNotification(Alert alert) {
+    void sendAlertNotification(Alert alert) {
+        // 这里可以集成邮件、短信、钉钉等通知方式
+        String notificationMessage = String.format(
+            "告警通知\n" +
+            "级别: %s\n" +
+            "时间: %s\n" +
+            "消息: %s\n" +
+            "来源: %s",
+            alert.getLevel(),
+            alert.getTimestamp().format(DATE_FORMATTER),
+            alert.getMessage(),
+            alert.getSource()
+        );
+        
         // 根据告警级别选择通知方式
-        switch (alert.getLevel()) {
-            case CRITICAL:
-                // 发送短信和邮件
-                sendSMS(alert);
-                sendEmail(alert);
-                break;
-            case ERROR:
-                // 发送邮件
-                sendEmail(alert);
-                break;
-            case WARNING:
-                // 记录到日志
-                log.warn(alert.toString());
-                break;
-            case INFO:
-                // 记录到日志
-                log.info(alert.toString());
-                break;
+        if ("HIGH".equals(alert.getLevel())) {
+            // 高级别告警立即通知
+            log.error("高级别告警: {}", notificationMessage);
+            // sendSmsNotification(notificationMessage);
+            // sendEmailNotification(notificationMessage);
+        } else {
+            // 中低级别告警延迟通知
+            log.warn("中低级别告警: {}", notificationMessage);
+            // scheduleDelayedNotification(notificationMessage);
         }
     }
     
     /**
-     * 发送短信通知
+     * 解决告警
      */
-    private void sendSMS(Alert alert) {
-        // TODO: 实现短信发送逻辑
-        log.info("Sending SMS alert: {}", alert);
+    public void resolveAlert(String alertId) {
+        Alert alert = alertHistory.get(alertId);
+        if (alert != null) {
+            alert.setResolved(true);
+            log.info("告警已解决: {}", alertId);
+        }
     }
     
     /**
-     * 发送邮件通知
+     * 获取未解决的告警
      */
-    private void sendEmail(Alert alert) {
-        // TODO: 实现邮件发送逻辑
-        log.info("Sending email alert: {}", alert);
+    public List<Alert> getUnresolvedAlerts() {
+        return alertHistory.values().stream()
+            .filter(alert -> !alert.isResolved())
+            .sorted((a, b) -> b.getTimestamp().compareTo(a.getTimestamp()))
+            .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+    }
+    
+    /**
+     * 获取告警历史
+     */
+    public List<Alert> getAlertHistory() {
+        return new ArrayList<>(alertHistory.values());
+    }
+    
+    /**
+     * 清理过期告警
+     */
+    public void cleanupExpiredAlerts() {
+        LocalDateTime expireTime = LocalDateTime.now().minusDays(7);
+        alertHistory.entrySet().removeIf(entry -> 
+            entry.getValue().getTimestamp().isBefore(expireTime));
+    }
+
+    public void checkAlerts() {
+
+    }
+
+    public List<Alert> checkSystemStatus() {
+        return null;
+    }
+
+    @Data
+    @Builder
+    public static class Alert {
+        private String id;
+        private String level;
+        private String title;
+        private String message;
+        private LocalDateTime timestamp;
+        private String source;
+        private boolean resolved;
     }
 } 

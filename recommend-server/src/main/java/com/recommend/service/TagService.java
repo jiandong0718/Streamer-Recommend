@@ -158,4 +158,6 @@ public interface TagService {
      * 批量更新陪玩师标签
      */
     void batchUpdateGameMasterTags(Long masterId, List<GameMasterTag> gameMasterTags);
-} 
+
+    List<Long> getGameTags(Long gameId);
+}

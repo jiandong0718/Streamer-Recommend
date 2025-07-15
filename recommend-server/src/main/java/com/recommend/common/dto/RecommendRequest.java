@@ -26,6 +26,8 @@ public class RecommendRequest {
      */
     private Long categoryId;
 
+    private Long gameId;
+
     /**
      * 分类类型
      */
@@ -128,6 +130,8 @@ public class RecommendRequest {
      * 排序方式
      */
     private String sortBy;
+
+    private String algorithm;
 
     /**
      * 筛选条件

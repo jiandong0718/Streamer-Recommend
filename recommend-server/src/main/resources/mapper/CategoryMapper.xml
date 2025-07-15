@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.recommend.service.mapper.CategoryMapper">
+
+    <resultMap id="BaseResultMap" type="com.recommend.common.entity.Category">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="name" property="name" jdbcType="VARCHAR"/>
+        <result column="type" property="type" jdbcType="VARCHAR"/>
+        <result column="icon" property="icon" jdbcType="VARCHAR"/>
+        <result column="description" property="description" jdbcType="VARCHAR"/>
+        <result column="status" property="status" jdbcType="INTEGER"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <select id="selectByType" resultMap="BaseResultMap">
+        SELECT * FROM category WHERE type = #{type} AND status = 1
+    </select>
+
+    <select id="selectByStatus" resultMap="BaseResultMap">
+        SELECT * FROM category WHERE status = #{status}
+    </select>
+
+    <select id="searchCategories" resultMap="BaseResultMap">
+        SELECT * FROM category 
+        WHERE status = 1
+        <if test="keyword != null and keyword != ''">
+            AND (name LIKE CONCAT('%', #{keyword}, '%') OR description LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="selectHotCategories" resultMap="BaseResultMap">
+        SELECT * FROM category 
+        WHERE status = 1 
+        ORDER BY id DESC 
+        LIMIT #{limit}
+    </select>
+
+</mapper> 

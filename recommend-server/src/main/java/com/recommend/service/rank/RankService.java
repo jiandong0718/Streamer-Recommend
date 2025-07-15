@@ -4,6 +4,7 @@ import com.recommend.common.entity.GameMaster;
 import com.recommend.common.entity.UserProfile;
 import com.recommend.service.UserProfileService;
 import com.recommend.service.feature.FeatureExtractor;
+import com.recommend.service.feature.RankingFeatures;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import lombok.extern.slf4j.Slf4j;

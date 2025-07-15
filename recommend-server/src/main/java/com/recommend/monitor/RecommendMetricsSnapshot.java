@@ -59,6 +59,56 @@ public class RecommendMetricsSnapshot {
     // 自定义指标
     private Map<String, Double> customMetrics;
     
+    /**
+     * 获取失败率
+     */
+    public Double getFailureRate() {
+        return errorRate;
+    }
+    
+    /**
+     * 获取平均精确率
+     */
+    public Double getAveragePrecision() {
+        return clickThroughRate * 0.8; // 简化计算
+    }
+    
+    /**
+     * 获取平均召回率
+     */
+    public Double getAverageRecall() {
+        return conversionRate * 0.9; // 简化计算
+    }
+    
+    /**
+     * 获取多样性得分
+     */
+    public Double getDiversity() {
+        return diversityScore;
+    }
+    
+    /**
+     * 生成报告
+     */
+    public String generateReport() {
+        return String.format(
+            "推荐系统监控报告 [%s]\n" +
+            "总推荐数: %d\n" +
+            "平均响应时间: %.2fms\n" +
+            "错误率: %.2f%%\n" +
+            "缓存命中率: %.2f%%\n" +
+            "点击率: %.2f%%\n" +
+            "转化率: %.2f%%\n",
+            timestamp,
+            totalRecommendations,
+            averageResponseTime,
+            errorRate * 100,
+            cacheHitRate * 100,
+            clickThroughRate * 100,
+            conversionRate * 100
+        );
+    }
+    
     // 告警信息
     private Integer alertCount;
     private Integer criticalAlertCount;

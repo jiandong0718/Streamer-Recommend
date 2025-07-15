@@ -6,6 +6,9 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
+/**
+ * @author liujiandong
+ */
 @Mapper
 public interface CategoryMapper extends BaseMapper<Category> {
     

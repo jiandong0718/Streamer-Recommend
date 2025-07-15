@@ -28,4 +28,19 @@ public interface UserMapper extends BaseMapper<User> {
      * 更新用户最后登录时间
      */
     void updateLastLoginTime(@Param("userId") Long userId);
+    
+    /**
+     * 获取用户标签名称列表
+     */
+    List<String> selectUserTagNames(@Param("userId") Long userId);
+    
+    /**
+     * 获取用户行为记录
+     */
+    List<String> selectUserBehaviors(@Param("userId") Long userId);
+    
+    /**
+     * 获取用户订单信息
+     */
+    List<String> selectUserOrders(@Param("userId") Long userId);
 } 

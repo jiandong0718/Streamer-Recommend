@@ -36,6 +36,8 @@ public class UserProfile {
     private Date lastActiveTime;
     private String currentGame;
     private String onlineStatus;
+
+    private String tags;
     
     private Date createTime;
     private Date updateTime;

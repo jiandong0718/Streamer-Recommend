@@ -13,11 +13,8 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.extern.slf4j.Slf4j;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.ArrayList;
-import java.util.Date;
+
+import java.util.*;
 
 @Service
 @Slf4j
@@ -252,5 +249,10 @@ public class TagServiceImpl implements TagService {
             masterTag.setUpdateTime(new Date());
             gameMasterTagMapper.insert(masterTag);
         }
+    }
+
+    @Override
+    public List<Long> getGameTags(Long gameId) {
+        return Collections.emptyList();
     }
 } 

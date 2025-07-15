@@ -39,20 +39,20 @@ public class UserController {
     @PostMapping
     public Result<Void> createUser(@RequestBody User user) {
         userService.createUser(user);
-        return Result.success();
+        return Result.<Void>success();
     }
     
     @PutMapping("/{id}")
     public Result<Void> updateUser(@PathVariable Long id, @RequestBody User user) {
         user.setId(id);
         userService.updateUser(user);
-        return Result.success();
+        return Result.<Void>success();
     }
     
     @DeleteMapping("/{id}")
     public Result<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
-        return Result.success();
+        return Result.<Void>success();
     }
     
     @GetMapping("/{id}/profile")
