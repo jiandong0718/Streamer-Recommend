@@ -337,9 +337,9 @@ A: 系统支持MySQL、Redis、HBase、Elasticsearch多种存储方式，可根�
 
 ## 联系我们
 
-- 项目主页：https://github.com/your-org/recommend
-- 问题反馈：https://github.com/your-org/recommend/issues
-- 邮箱：team@example.com
+- 项目主页：https://github.com/jiandong0718/recommend
+- 问题反馈：https://github.com/jiandong0718/recommend/issues
+- 邮箱：jiandong.yh@gmail.com
 
 ## 更新日志
 
