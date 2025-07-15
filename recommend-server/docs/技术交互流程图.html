@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>主播推荐系统技术交互流程图</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 40px;
+            border-bottom: 3px solid #007acc;
+            padding-bottom: 10px;
+        }
+        
+        h2 {
+            color: #444;
+            margin-top: 50px;
+            margin-bottom: 20px;
+            padding: 10px 0;
+            border-left: 4px solid #007acc;
+            padding-left: 15px;
+        }
+        
+        .diagram-container {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        
+        .diagram {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .description {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #e8f4fd;
+            border-radius: 5px;
+            border-left: 4px solid #007acc;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>主播推荐系统技术交互流程图</h1>
+
+        <h2>1. 数据存储层交互架构</h2>
+        <div class="diagram-container">
+            <div class="description">
+                <strong>说明：</strong>展示MySQL、Redis、Elasticsearch、HBase等组件的协同工作模式和数据流转路径。
+            </div>
+            <div class="diagram">
+                <div class="mermaid">
+graph TB
+    subgraph "应用服务层"
+        US[用户服务]
+        SS[主播服务]
+        RS[推荐服务]
+        PS[画像服务]
+        FS[特征服务]
+    end
+
+    subgraph "缓存层架构"
+        L1[本地缓存<br/>Caffeine<br/>配置数据/热点数据]
+        L2[分布式缓存<br/>Redis<br/>用户画像/推荐结果]
+        L3[应用缓存<br/>JVM<br/>计算结果/相似度]
+    end
+
+    subgraph "数据存储层"
+        MYSQL[MySQL 8.0<br/>事务数据<br/>用户/主播/订单]
+        REDIS[Redis 6.0<br/>实时数据<br/>会话/计数器/排行榜]
+        ES[Elasticsearch 7.x<br/>搜索数据<br/>全文检索/聚合分析]
+        HBASE[HBase 2.x<br/>大数据<br/>行为日志/特征向量]
+    end
+
+    subgraph "数据同步"
+        CDC[CDC变更捕获]
+        ETL[ETL数据同步]
+        STREAM[流式处理]
+    end
+
+    %% 应用层到缓存层
+    US -->|读写| L1
+    SS -->|读写| L1
+    RS -->|读写| L2
+    PS -->|读写| L2
+    FS -->|读写| L3
+
+    %% 缓存层级联
+    L1 -->|未命中| L2
+    L2 -->|未命中| MYSQL
+    L3 -->|持久化| REDIS
+
+    %% 应用层到存储层
+    US -->|CRUD| MYSQL
+    SS -->|CRUD| MYSQL
+    RS -->|搜索| ES
+    PS -->|查询| HBASE
+    FS -->|存储| HBASE
+
+    %% 数据同步流
+    MYSQL -->|变更日志| CDC
+    CDC -->|实时同步| ES
+    CDC -->|实时同步| REDIS
+    
+    MYSQL -->|批量同步| ETL
+    ETL -->|定时同步| HBASE
+    
+    REDIS -->|流式数据| STREAM
+    STREAM -->|处理后| HBASE
+
+    style MYSQL fill:#e1f5fe
+    style REDIS fill:#fff3e0
+    style ES fill:#f3e5f5
+    style HBASE fill:#e8f5e8
+                </div>
+            </div>
+        </div>
+
+        <h2>2. 用户画像生成与更新流程</h2>
+        <div class="diagram-container">
+            <div class="description">
+                <strong>说明：</strong>展示用户画像的生成、实时更新和动态调整的完整流程。
+            </div>
+            <div class="diagram">
+                <div class="mermaid">
+sequenceDiagram
+    participant UB as 用户行为
+    participant RT as 实时处理引擎
+    participant FE as 特征工程
+    participant PG as 画像生成器
+    participant CACHE as 缓存层
+    participant ML as 机器学习
+    participant DB as 存储层
+
+    Note over UB,DB: 用户画像生成与实时更新流程
+
+    %% 行为数据收集
+    UB->>RT: 用户行为事件<br/>(点击/观看/订单)
+    RT->>FE: 特征提取
+    
+    par 实时特征计算
+        FE->>FE: 活跃度计算
+        FE->>FE: 偏好分析
+        FE->>FE: 时间模式识别
+    end
+    
+    FE->>CACHE: 更新实时特征
+    
+    %% 触发条件判断
+    alt 达到更新阈值
+        RT->>PG: 触发画像更新
+        
+        par 多维度特征获取
+            PG->>DB: 获取历史行为
+            PG->>DB: 获取订单数据
+            PG->>CACHE: 获取实时特征
+        end
+        
+        PG->>PG: 特征融合与权重计算
+        PG->>ML: 画像建模
+        ML-->>PG: 返回画像结果
+        
+        PG->>CACHE: 更新画像缓存
+        PG->>DB: 持久化画像数据
+        
+    else 累积更新
+        RT->>CACHE: 累积特征值
+    end
+    
+    %% 画像应用
+    Note over CACHE,DB: 画像应用场景
+    CACHE->>RT: 推荐服务调用
+    CACHE->>RT: 个性化配置
+                </div>
+            </div>
+        </div>
+
+        <h2>3. 实时推荐引擎处理流程</h2>
+        <div class="diagram-container">
+            <div class="description">
+                <strong>说明：</strong>展示推荐请求的完整处理流程，包括多路召回、实时排序和结果优化。
+            </div>
+            <div class="diagram">
+                <div class="mermaid">
+graph TD
+    subgraph "请求入口"
+        REQ[推荐请求]
+        VALID[参数验证]
+        LIMIT[频率限制]
+    end
+
+    subgraph "用户画像获取"
+        CACHE_CHECK{缓存检查}
+        PROFILE_CACHE[画像缓存]
+        PROFILE_BUILD[画像构建]
+        REALTIME_FEAT[实时特征]
+    end
+
+    subgraph "多路召回策略"
+        HOT_RECALL[热门召回<br/>Redis ZSet<br/>20%]
+        TAG_RECALL[标签召回<br/>ES查询<br/>25%]
+        CF_RECALL[协同过滤<br/>HBase矩阵<br/>20%]
+        CONTENT_RECALL[内容召回<br/>ES相似度<br/>25%]
+        NOVEL_RECALL[新颖性召回<br/>MySQL时间<br/>10%]
+    end
+
+    subgraph "特征丰富"
+        FEATURE_EXTRACT[特征提取]
+        FEATURE_UNION[特征融合]
+        REAL_FEATURES[实时特征补充]
+    end
+
+    subgraph "算法排序"
+        SCORE_CALC[评分计算]
+        RELEVANCE[相关性30%]
+        QUALITY[质量25%]
+        POPULARITY[热度20%]
+        PRICE[价格15%]
+        TIME[时间10%]
+    end
+
+    subgraph "结果优化"
+        FILTER[业务过滤]
+        DIVERSITY[多样性调整]
+        DEDUP[去重处理]
+        RERANK[重排序]
+    end
+
+    subgraph "结果输出"
+        CACHE_RESULT[缓存结果]
+        MONITOR[指标监控]
+        RESPONSE[返回响应]
+    end
+
+    %% 流程连接
+    REQ --> VALID
+    VALID --> LIMIT
+    LIMIT --> CACHE_CHECK
+    
+    CACHE_CHECK -->|命中| PROFILE_CACHE
+    CACHE_CHECK -->|未命中| PROFILE_BUILD
+    PROFILE_BUILD --> REALTIME_FEAT
+    PROFILE_CACHE --> REALTIME_FEAT
+    
+    REALTIME_FEAT --> HOT_RECALL
+    REALTIME_FEAT --> TAG_RECALL
+    REALTIME_FEAT --> CF_RECALL
+    REALTIME_FEAT --> CONTENT_RECALL
+    REALTIME_FEAT --> NOVEL_RECALL
+    
+    HOT_RECALL --> FEATURE_EXTRACT
+    TAG_RECALL --> FEATURE_EXTRACT
+    CF_RECALL --> FEATURE_EXTRACT
+    CONTENT_RECALL --> FEATURE_EXTRACT
+    NOVEL_RECALL --> FEATURE_EXTRACT
+    
+    FEATURE_EXTRACT --> FEATURE_UNION
+    FEATURE_UNION --> REAL_FEATURES
+    REAL_FEATURES --> SCORE_CALC
+    
+    SCORE_CALC --> RELEVANCE
+    SCORE_CALC --> QUALITY
+    SCORE_CALC --> POPULARITY
+    SCORE_CALC --> PRICE
+    SCORE_CALC --> TIME
+    
+    RELEVANCE --> FILTER
+    QUALITY --> FILTER
+    POPULARITY --> FILTER
+    PRICE --> FILTER
+    TIME --> FILTER
+    
+    FILTER --> DIVERSITY
+    DIVERSITY --> DEDUP
+    DEDUP --> RERANK
+    
+    RERANK --> CACHE_RESULT
+    CACHE_RESULT --> MONITOR
+    MONITOR --> RESPONSE
+
+    style HOT_RECALL fill:#ff9999
+    style TAG_RECALL fill:#99ff99
+    style CF_RECALL fill:#9999ff
+    style CONTENT_RECALL fill:#ffff99
+    style NOVEL_RECALL fill:#ff99ff
+                </div>
+            </div>
+        </div>
+
+        <h2>4. 实时处理与流式计算架构</h2>
+        <div class="diagram-container">
+            <div class="description">
+                <strong>说明：</strong>展示基于事件驱动的实时处理架构，包括流式数据处理和实时特征计算。
+            </div>
+            <div class="diagram">
+                <div class="mermaid">
+graph LR
+    subgraph "数据源"
+        USER_ACTION[用户行为]
+        ORDER_EVENT[订单事件]
+        SYSTEM_EVENT[系统事件]
+    end
+
+    subgraph "消息队列"
+        MQ1[RocketMQ<br/>用户行为Topic]
+        MQ2[RocketMQ<br/>订单事件Topic]
+        MQ3[RocketMQ<br/>系统事件Topic]
+    end
+
+    subgraph "流式处理引擎"
+        PROCESSOR1[行为处理器<br/>用户画像更新]
+        PROCESSOR2[订单处理器<br/>主播画像更新]
+        PROCESSOR3[事件处理器<br/>系统状态更新]
+    end
+
+    subgraph "实时计算"
+        WINDOW[滑动窗口计算]
+        AGGREGATION[实时聚合]
+        FEATURE_CALC[特征计算]
+        SIMILARITY[相似度计算]
+    end
+
+    subgraph "实时存储"
+        REDIS_STREAM[Redis Stream]
+        REDIS_COUNTER[Redis Counter]
+        REDIS_ZSET[Redis ZSet]
+        MEMORY_CACHE[内存缓存]
+    end
+
+    subgraph "触发机制"
+        THRESHOLD_CHECK[阈值检查]
+        TIME_TRIGGER[时间触发]
+        EVENT_TRIGGER[事件触发]
+        BATCH_TRIGGER[批量触发]
+    end
+
+    subgraph "下游应用"
+        RECOMMEND_UPDATE[推荐更新]
+        PROFILE_UPDATE[画像更新]
+        ALERT_SYSTEM[告警系统]
+        ANALYTICS[实时分析]
+    end
+
+    %% 数据流
+    USER_ACTION --> MQ1
+    ORDER_EVENT --> MQ2
+    SYSTEM_EVENT --> MQ3
+
+    MQ1 --> PROCESSOR1
+    MQ2 --> PROCESSOR2
+    MQ3 --> PROCESSOR3
+
+    PROCESSOR1 --> WINDOW
+    PROCESSOR2 --> AGGREGATION
+    PROCESSOR3 --> FEATURE_CALC
+
+    WINDOW --> REDIS_STREAM
+    AGGREGATION --> REDIS_COUNTER
+    FEATURE_CALC --> REDIS_ZSET
+    SIMILARITY --> MEMORY_CACHE
+
+    REDIS_STREAM --> THRESHOLD_CHECK
+    REDIS_COUNTER --> TIME_TRIGGER
+    REDIS_ZSET --> EVENT_TRIGGER
+    MEMORY_CACHE --> BATCH_TRIGGER
+
+    THRESHOLD_CHECK --> RECOMMEND_UPDATE
+    TIME_TRIGGER --> PROFILE_UPDATE
+    EVENT_TRIGGER --> ALERT_SYSTEM
+    BATCH_TRIGGER --> ANALYTICS
+
+    style MQ1 fill:#e1f5fe
+    style MQ2 fill:#e8f5e8
+    style MQ3 fill:#fff3e0
+                </div>
+            </div>
+        </div>
+
+        <h2>5. 缓存层级与数据一致性</h2>
+        <div class="diagram-container">
+            <div class="description">
+                <strong>说明：</strong>展示多级缓存的层级结构和数据一致性保证机制。
+            </div>
+            <div class="diagram">
+                <div class="mermaid">
+graph TB
+    subgraph "应用层"
+        APP1[推荐服务实例1]
+        APP2[推荐服务实例2]
+        APP3[推荐服务实例3]
+    end
+
+    subgraph "本地缓存层 (L1)"
+        LC1[Caffeine Cache 1<br/>配置数据<br/>热点数据]
+        LC2[Caffeine Cache 2<br/>配置数据<br/>热点数据]
+        LC3[Caffeine Cache 3<br/>配置数据<br/>热点数据]
+    end
+
+    subgraph "分布式缓存层 (L2)"
+        RC1[Redis Cluster<br/>Master 1]
+        RC2[Redis Cluster<br/>Master 2]
+        RC3[Redis Cluster<br/>Master 3]
+        RS1[Redis Slave 1]
+        RS2[Redis Slave 2]
+        RS3[Redis Slave 3]
+    end
+
+    subgraph "数据库层 (L3)"
+        DB1[MySQL Master]
+        DB2[MySQL Slave 1]
+        DB3[MySQL Slave 2]
+    end
+
+    subgraph "一致性保证"
+        CDC[变更数据捕获]
+        INVALIDATION[缓存失效]
+        SYNC[同步机制]
+        VERSION[版本控制]
+    end
+
+    %% 应用到本地缓存
+    APP1 --> LC1
+    APP2 --> LC2
+    APP3 --> LC3
+
+    %% 本地缓存到分布式缓存
+    LC1 -.->|Miss| RC1
+    LC2 -.->|Miss| RC2
+    LC3 -.->|Miss| RC3
+
+    %% Redis集群
+    RC1 --> RS1
+    RC2 --> RS2
+    RC3 --> RS3
+
+    %% 缓存到数据库
+    RC1 -.->|Miss| DB1
+    RC2 -.->|Miss| DB2
+    RC3 -.->|Miss| DB3
+
+    %% MySQL主从
+    DB1 --> DB2
+    DB1 --> DB3
+
+    %% 一致性机制
+    DB1 --> CDC
+    CDC --> INVALIDATION
+    INVALIDATION --> LC1
+    INVALIDATION --> LC2
+    INVALIDATION --> LC3
+    INVALIDATION --> RC1
+    INVALIDATION --> RC2
+    INVALIDATION --> RC3
+
+    CDC --> SYNC
+    SYNC --> VERSION
+
+    style LC1 fill:#e8f5e8
+    style LC2 fill:#e8f5e8
+    style LC3 fill:#e8f5e8
+    style RC1 fill:#fff3e0
+    style RC2 fill:#fff3e0
+    style RC3 fill:#fff3e0
+    style DB1 fill:#e1f5fe
+    style DB2 fill:#e1f5fe
+    style DB3 fill:#e1f5fe
+                </div>
+            </div>
+        </div>
+
+        <footer style="margin-top: 50px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #666;">
+            <p>主播推荐系统技术交互流程图 - 生成时间: <span id="timestamp"></span></p>
+        </footer>
+    </div>
+
+    <script>
+        // 初始化Mermaid
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'linear'
+            },
+            sequence: {
+                actorMargin: 50,
+                width: 150,
+                height: 65,
+                boxMargin: 10,
+                boxTextMargin: 5,
+                noteMargin: 10,
+                messageMargin: 35
+            }
+        });
+        
+        // 设置时间戳
+        document.getElementById('timestamp').textContent = new Date().toLocaleString('zh-CN');
+    </script>
+</body>
+</html> 

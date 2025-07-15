@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.recommend.service.mapper.CommentMapper">
+    
+    <!-- 根据用户ID查询评价列表 -->
+    <select id="selectByUserId" resultType="com.recommend.common.entity.Comment">
+        SELECT * FROM comment WHERE user_id = #{userId}
+    </select>
+    
+    <!-- 根据陪玩ID查询评价列表 -->
+    <select id="selectByMasterId" resultType="com.recommend.common.entity.Comment">
+        SELECT * FROM comment WHERE master_id = #{masterId}
+    </select>
+    
+    <!-- 根据订单ID查询评价 -->
+    <select id="selectByOrderId" resultType="com.recommend.common.entity.Comment">
+        SELECT * FROM comment WHERE order_id = #{orderId}
+    </select>
+    
+    <!-- 根据评分范围查询评价列表 -->
+    <select id="selectByScoreRange" resultType="com.recommend.common.entity.Comment">
+        SELECT * FROM comment 
+        WHERE score BETWEEN #{minScore} AND #{maxScore}
+    </select>
+    
+    <!-- 根据时间范围查询评价列表 -->
+    <select id="selectByTimeRange" resultType="com.recommend.common.entity.Comment">
+        SELECT * FROM comment 
+        WHERE create_time BETWEEN #{startTime} AND #{endTime}
+    </select>
+    
+    <!-- 统计用户评价数量 -->
+    <select id="countByUserId" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM comment WHERE user_id = #{userId}
+    </select>
+    
+    <!-- 统计陪玩评价数量 -->
+    <select id="countByMasterId" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM comment WHERE master_id = #{masterId}
+    </select>
+    
+    <!-- 计算陪玩平均评分 -->
+    <select id="calculateAverageScore" resultType="java.lang.Double">
+        SELECT AVG(score) FROM comment WHERE master_id = #{masterId}
+    </select>
+    
+</mapper> 

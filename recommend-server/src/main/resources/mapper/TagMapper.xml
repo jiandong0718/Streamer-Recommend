@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.recommend.service.mapper.TagMapper">
+    
+    <!-- 根据类型和分类查询标签列表 -->
+    <select id="selectByTypeAndCategory" resultType="com.recommend.common.entity.Tag">
+        SELECT * FROM tag 
+        WHERE type = #{type} AND category = #{category}
+    </select>
+    
+    <!-- 根据状态查询标签列表 -->
+    <select id="selectByStatus" resultType="com.recommend.common.entity.Tag">
+        SELECT * FROM tag WHERE status = #{status}
+    </select>
+    
+    <!-- 根据权重范围查询标签列表 -->
+    <select id="selectByWeightRange" resultType="com.recommend.common.entity.Tag">
+        SELECT * FROM tag 
+        WHERE weight BETWEEN #{minWeight} AND #{maxWeight}
+    </select>
+    
+</mapper> 

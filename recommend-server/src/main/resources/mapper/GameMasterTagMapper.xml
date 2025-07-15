@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.recommend.service.mapper.GameMasterTagMapper">
+    
+    <!-- 根据陪玩ID查询标签列表 -->
+    <select id="selectByMasterId" resultType="com.recommend.common.entity.GameMasterTag">
+        SELECT * FROM game_master_tag WHERE master_id = #{masterId}
+    </select>
+    
+    <!-- 根据标签ID查询陪玩列表 -->
+    <select id="selectByTagId" resultType="com.recommend.common.entity.GameMasterTag">
+        SELECT * FROM game_master_tag WHERE tag_id = #{tagId}
+    </select>
+    
+    <!-- 根据权重范围查询陪玩标签列表 -->
+    <select id="selectByWeightRange" resultType="com.recommend.common.entity.GameMasterTag">
+        SELECT * FROM game_master_tag 
+        WHERE weight BETWEEN #{minWeight} AND #{maxWeight}
+    </select>
+    
+    <!-- 更新陪玩标签权重 -->
+    <update id="updateWeight">
+        UPDATE game_master_tag 
+        SET weight = #{weight}, update_time = NOW()
+        WHERE master_id = #{masterId} AND tag_id = #{tagId}
+    </update>
+    
+    <!-- 删除陪玩标签 -->
+    <delete id="deleteByMasterIdAndTagId">
+        DELETE FROM game_master_tag 
+        WHERE master_id = #{masterId} AND tag_id = #{tagId}
+    </delete>
+    
+</mapper> 

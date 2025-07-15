@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.recommend.service.mapper.UserBehaviorMapper">
+    
+    <!-- 根据用户ID查询行为列表 -->
+    <select id="selectByUserId" resultType="com.recommend.common.entity.UserBehavior">
+        SELECT * FROM user_behavior WHERE user_id = #{userId}
+    </select>
+    
+    <!-- 根据行为类型查询行为列表 -->
+    <select id="selectByType" resultType="com.recommend.common.entity.UserBehavior">
+        SELECT * FROM user_behavior WHERE type = #{type}
+    </select>
+    
+    <!-- 根据目标ID和目标类型查询行为列表 -->
+    <select id="selectByTarget" resultType="com.recommend.common.entity.UserBehavior">
+        SELECT * FROM user_behavior 
+        WHERE target_id = #{targetId} AND target_type = #{targetType}
+    </select>
+    
+    <!-- 根据时间范围查询行为列表 -->
+    <select id="selectByTimeRange" resultType="com.recommend.common.entity.UserBehavior">
+        SELECT * FROM user_behavior 
+        WHERE create_time BETWEEN #{startTime} AND #{endTime}
+    </select>
+    
+    <!-- 统计用户行为数量 -->
+    <select id="countByUserIdAndType" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM user_behavior 
+        WHERE user_id = #{userId} AND type = #{type}
+    </select>
+    
+    <!-- 统计目标行为数量 -->
+    <select id="countByTargetAndType" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM user_behavior 
+        WHERE target_id = #{targetId} AND target_type = #{targetType} AND type = #{type}
+    </select>
+    
+</mapper> 

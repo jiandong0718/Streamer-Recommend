@@ -1,0 +1,81 @@
+# 生产环境配置
+spring:
+  # 数据源配置
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/recommend?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=true}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:password}
+    druid:
+      initial-size: 10
+      min-idle: 10
+      max-active: 50
+      max-wait: 60000
+      test-while-idle: true
+      validation-query: SELECT 1
+      filters: stat,wall
+
+  # Redis配置
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:}
+    database: ${REDIS_DATABASE:0}
+    timeout: 5000ms
+    lettuce:
+      pool:
+        max-active: 100
+        max-idle: 50
+        min-idle: 10
+        max-wait: 3000ms
+
+  # JPA配置
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: false
+
+# MyBatis Plus配置
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
+
+# 推荐系统配置
+recommend:
+  system:
+    enable-cache: true
+    enable-monitor: true
+    default-recommend-count: 20
+    max-recommend-count: 100
+
+# 日志配置
+logging:
+  level:
+    root: WARN
+    com.recommend: INFO
+  file:
+    name: /var/log/recommend-server/application.log
+    max-size: 100MB
+    max-history: 30
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{50} - %msg%n"
+
+# 管理端点配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+
+# 服务器配置
+server:
+  tomcat:
+    accept-count: 1000
+    max-threads: 800
+    min-spare-threads: 200
+    max-connections: 10000 

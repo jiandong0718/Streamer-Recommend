@@ -1,0 +1,39 @@
+{
+  "name": "recommend-system-diagrams",
+  "version": "1.0.0",
+  "description": "主播推荐系统架构图表生成工具",
+  "main": "generate-images.js",
+  "scripts": {
+    "generate": "node generate-images.js",
+    "install-deps": "npm install",
+    "clean": "rm -rf images/*.png",
+    "help": "echo '使用方法：npm run generate 生成所有架构图片'"
+  },
+  "keywords": [
+    "architecture",
+    "diagram", 
+    "mermaid",
+    "puppeteer",
+    "recommendation-system"
+  ],
+  "author": "推荐系统团队",
+  "license": "MIT",
+  "dependencies": {
+    "puppeteer": "^21.6.0"
+  },
+  "devDependencies": {
+    "@mermaid-js/mermaid-cli": "^10.6.1"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "."
+  },
+  "bugs": {
+    "url": "."
+  },
+  "homepage": "."
+} 

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.recommend.service.mapper.GameMasterMapper">
+    
+    <!-- 根据地区查询陪玩列表 -->
+    <select id="selectByRegion" resultType="com.recommend.common.entity.GameMaster">
+        SELECT * FROM game_master WHERE region = #{region}
+    </select>
+    
+    <!-- 根据状态查询陪玩列表 -->
+    <select id="selectByStatus" resultType="com.recommend.common.entity.GameMaster">
+        SELECT * FROM game_master WHERE status = #{status}
+    </select>
+    
+    <!-- 根据评分范围查询陪玩列表 -->
+    <select id="selectByScoreRange" resultType="com.recommend.common.entity.GameMaster">
+        SELECT * FROM game_master 
+        WHERE score BETWEEN #{minScore} AND #{maxScore}
+    </select>
+    
+    <!-- 根据价格范围查询陪玩列表 -->
+    <select id="selectByPriceRange" resultType="com.recommend.common.entity.GameMaster">
+        SELECT * FROM game_master 
+        WHERE price BETWEEN #{minPrice} AND #{maxPrice}
+    </select>
+    
+    <!-- 更新陪玩评分 -->
+    <update id="updateScore">
+        UPDATE game_master SET score = #{score} WHERE id = #{masterId}
+    </update>
+    
+    <!-- 更新陪玩状态 -->
+    <update id="updateStatus">
+        UPDATE game_master SET status = #{status} WHERE id = #{masterId}
+    </update>
+    
+</mapper> 

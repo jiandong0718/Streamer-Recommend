@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>主播推荐系统架构图表</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 40px;
+            border-bottom: 3px solid #007acc;
+            padding-bottom: 10px;
+        }
+        
+        h2 {
+            color: #444;
+            margin-top: 50px;
+            margin-bottom: 20px;
+            padding: 10px 0;
+            border-left: 4px solid #007acc;
+            padding-left: 15px;
+        }
+        
+        .diagram-container {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        
+        .diagram {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .description {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #e8f4fd;
+            border-radius: 5px;
+            border-left: 4px solid #007acc;
+        }
+        
+        .download-hint {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>主播推荐系统架构图表</h1>
+        
+        <div class="download-hint">
+            <strong>💡 使用提示：</strong>
+            <ul>
+                <li>右键点击图表 → "图片另存为" 即可保存为PNG图片</li>
+                <li>建议保存到 <code>recommend-server/docs/images/</code> 目录下</li>
+                <li>推荐文件名：system-architecture.png, interaction-flow.png, data-flow.png</li>
+            </ul>
+        </div>
+
+        <h2>1. 系统总体架构图</h2>
+        <div class="diagram-container">
+            <div class="description">
+                <strong>架构说明：</strong>展示了主播推荐系统的完整微服务架构，包括前端层、API网关层、应用服务层、业务逻辑层、数据访问层、数据存储层、监控层和配置中心等各个组件及其关系。
+            </div>
+            <div class="diagram">
+                <div class="mermaid" id="architecture-diagram">
+graph TB
+    subgraph "前端层"
+        UI[用户界面]
+        APP[移动端APP]
+        WEB[Web界面]
+    end
+
+    subgraph "API网关层"
+        GATEWAY[API网关<br/>Spring Cloud Gateway]
+        LB[负载均衡器]
+    end
+
+    subgraph "应用服务层"
+        subgraph "推荐服务"
+            RC[推荐控制器<br/>RecommendController]
+            RS[推荐服务<br/>RecommendService]
+            RA[推荐算法<br/>Algorithm]
+        end
+        
+        subgraph "主播服务"
+            SC[主播控制器<br/>StreamerController]
+            SS[主播服务<br/>StreamerService]
+            SSC[主播搜索控制器<br/>StreamerSearchController]
+            SSS[主播搜索服务<br/>StreamerSearchService]
+        end
+        
+        subgraph "用户服务"
+            UC[用户控制器<br/>UserController]
+            US[用户服务<br/>UserService]
+            UBS[用户行为服务<br/>UserBehaviorService]
+        end
+        
+        subgraph "订单服务"
+            OC[订单控制器<br/>OrderController]
+            OS[订单服务<br/>OrderService]
+        end
+    end
+
+    subgraph "业务逻辑层"
+        subgraph "召回策略"
+            HR[热门召回<br/>HotRecall]
+            TR[标签召回<br/>TagRecall]
+            CFR[协同过滤召回<br/>CollaborativeRecall]
+            CBR[内容召回<br/>ContentRecall]
+            NR[新颖性召回<br/>NoveltyRecall]
+        end
+        
+        subgraph "排序算法"
+            RANK[排序服务<br/>RankService]
+            FE[特征提取<br/>FeatureExtractor]
+            RF[排序特征<br/>RankingFeatures]
+        end
+        
+        subgraph "过滤策略"
+            FS[过滤服务<br/>FilterService]
+            BF[黑名单过滤]
+            QF[质量过滤]
+        end
+    end
+
+    subgraph "数据访问层"
+        subgraph "缓存层"
+            L1[一级缓存<br/>JVM Cache]
+            L2[二级缓存<br/>Redis Cache]
+        end
+        
+        subgraph "数据持久层"
+            SM[主播映射器<br/>StreamerMapper]
+            UM[用户映射器<br/>UserMapper]
+            OM[订单映射器<br/>OrderMapper]
+            TM[标签映射器<br/>TagMapper]
+        end
+    end
+
+    subgraph "数据存储层"
+        MYSQL[(MySQL数据库)]
+        REDIS[(Redis缓存)]
+    end
+
+    subgraph "监控层"
+        MONITOR[监控服务<br/>MonitorService]
+        METRICS[指标收集<br/>MetricsCollector]
+        ALERT[告警服务<br/>AlertService]
+        PROMETHEUS[Prometheus]
+        GRAFANA[Grafana]
+    end
+
+    subgraph "配置中心"
+        NACOS[Nacos配置中心]
+    end
+
+    %% 连接关系
+    UI --> GATEWAY
+    APP --> GATEWAY
+    WEB --> GATEWAY
+    
+    GATEWAY --> LB
+    LB --> RC
+    LB --> SC
+    LB --> UC
+    LB --> OC
+    LB --> SSC
+    
+    RC --> RS
+    SC --> SS
+    UC --> US
+    OC --> OS
+    SSC --> SSS
+    
+    RS --> HR
+    RS --> TR
+    RS --> CFR
+    RS --> CBR
+    RS --> NR
+    RS --> RANK
+    RS --> FS
+    
+    RANK --> FE
+    RANK --> RF
+    
+    SS --> SM
+    US --> UM
+    OS --> OM
+    RS --> L1
+    RS --> L2
+    
+    L1 --> L2
+    L2 --> MYSQL
+    L2 --> REDIS
+    
+    SM --> MYSQL
+    UM --> MYSQL
+    OM --> MYSQL
+    TM --> MYSQL
+    
+    MONITOR --> METRICS
+    MONITOR --> ALERT
+    METRICS --> PROMETHEUS
+    PROMETHEUS --> GRAFANA
+    
+    NACOS --> RC
+    NACOS --> SC
+    NACOS --> UC
+    NACOS --> OC
+                </div>
+            </div>
+        </div>
+
+        <h2>2. 系统交互流程时序图</h2>
+        <div class="diagram-container">
+            <div class="description">
+                <strong>流程说明：</strong>展示了用户发起推荐请求后，系统内部各组件间的交互流程，包括缓存检查、多路召回、特征提取、算法计算、排序过滤等完整流程。
+            </div>
+            <div class="diagram">
+                <div class="mermaid" id="interaction-diagram">
+sequenceDiagram
+    participant U as 用户端
+    participant G as API网关
+    participant RC as 推荐控制器
+    participant RS as 推荐服务
+    participant RECALL as 召回服务
+    participant RANK as 排序服务
+    participant FILTER as 过滤服务
+    participant CACHE as 缓存层
+    participant DB as 数据库
+    participant MONITOR as 监控服务
+
+    Note over U,MONITOR: 主播推荐系统交互流程
+
+    %% 用户请求推荐
+    U->>G: 发送推荐请求
+    G->>RC: 转发请求
+    RC->>RS: 调用推荐服务
+
+    %% 监控记录
+    RS->>MONITOR: 记录请求指标
+    
+    %% 缓存检查
+    RS->>CACHE: 检查缓存
+    alt 缓存命中
+        CACHE-->>RS: 返回缓存结果
+        RS-->>RC: 返回推荐结果
+        RC-->>G: 响应结果
+        G-->>U: 返回推荐列表
+    else 缓存未命中
+        %% 多路召回
+        RS->>RECALL: 执行召回策略
+        
+        par 热门召回
+            RECALL->>DB: 查询热门主播
+            DB-->>RECALL: 返回热门数据
+        and 标签召回
+            RECALL->>DB: 基于用户标签召回
+            DB-->>RECALL: 返回标签匹配数据
+        and 协同过滤召回
+            RECALL->>DB: 查询相似用户喜好
+            DB-->>RECALL: 返回协同过滤数据
+        and 内容召回
+            RECALL->>DB: 基于内容相似性召回
+            DB-->>RECALL: 返回内容匹配数据
+        and 新颖性召回
+            RECALL->>DB: 召回新主播
+            DB-->>RECALL: 返回新颖性数据
+        end
+        
+        RECALL-->>RS: 返回召回结果集
+        
+        %% 特征提取和排序
+        RS->>RANK: 执行排序算法
+        RANK->>DB: 获取特征数据
+        DB-->>RANK: 返回特征信息
+        RANK->>RANK: 计算相关性(30%)<br/>质量(25%)<br/>热度(20%)<br/>价格(15%)<br/>时间(10%)
+        RANK-->>RS: 返回排序结果
+        
+        %% 过滤处理
+        RS->>FILTER: 执行过滤策略
+        FILTER->>DB: 检查黑名单等
+        DB-->>FILTER: 返回过滤规则
+        FILTER-->>RS: 返回过滤后结果
+        
+        %% 缓存更新
+        RS->>CACHE: 更新缓存
+        
+        %% 监控记录
+        RS->>MONITOR: 记录推荐指标
+        
+        %% 返回结果
+        RS-->>RC: 返回最终推荐结果
+        RC-->>G: 响应结果
+        G-->>U: 返回推荐列表
+    end
+    
+    %% 用户反馈
+    opt 用户反馈
+        U->>G: 发送用户反馈
+        G->>RC: 转发反馈
+        RC->>RS: 处理反馈
+        RS->>DB: 更新用户行为数据
+        RS->>MONITOR: 记录反馈指标
+    end
+                </div>
+            </div>
+        </div>
+
+        <h2>3. 数据流图</h2>
+        <div class="diagram-container">
+            <div class="description">
+                <strong>数据说明：</strong>展示了数据在推荐系统中的流转过程，从数据输入、特征工程、算法引擎、召回引擎，到评分排序、结果优化，最终输出推荐结果的完整数据流。
+            </div>
+            <div class="diagram">
+                <div class="mermaid" id="dataflow-diagram">
+flowchart TD
+    subgraph "数据输入层"
+        UR[用户请求数据]
+        UB[用户行为数据]
+        SD[主播数据]
+        OD[订单数据]
+    end
+
+    subgraph "数据处理层"
+        subgraph "特征工程"
+            UF[用户特征提取]
+            SF[主播特征提取]
+            IF[交互特征提取]
+            CF[上下文特征提取]
+        end
+        
+        subgraph "算法引擎"
+            CFA[协同过滤算法]
+            CBA[基于内容算法]
+            HA[混合算法]
+        end
+        
+        subgraph "召回引擎"
+            HR[热门召回<br/>20%]
+            TR[标签召回<br/>25%]
+            CFR[协同过滤召回<br/>20%]
+            CBR[内容召回<br/>25%]
+            NR[新颖性召回<br/>10%]
+        end
+    end
+
+    subgraph "评分与排序"
+        SCORE[评分计算]
+        WEIGHT[权重分配<br/>相关性30%+质量25%+<br/>热度20%+价格15%+时间10%]
+        RANK[最终排序]
+    end
+
+    subgraph "结果优化"
+        FILTER[结果过滤]
+        DIVERSE[多样性处理]
+        PERSONAL[个性化调整]
+    end
+
+    subgraph "输出层"
+        RESULT[推荐结果]
+        CACHE[缓存存储]
+        FEEDBACK[反馈收集]
+    end
+
+    %% 数据流向
+    UR --> UF
+    UB --> UF
+    UB --> IF
+    SD --> SF
+    OD --> IF
+    
+    UF --> CFA
+    UF --> CBA
+    UF --> HA
+    SF --> CFA
+    SF --> CBA
+    SF --> HA
+    IF --> CFA
+    IF --> CBA
+    IF --> HA
+    CF --> HA
+    
+    CFA --> CFR
+    CBA --> CBR
+    HA --> HR
+    HA --> TR
+    HA --> NR
+    
+    HR --> SCORE
+    TR --> SCORE
+    CFR --> SCORE
+    CBR --> SCORE
+    NR --> SCORE
+    
+    SCORE --> WEIGHT
+    WEIGHT --> RANK
+    
+    RANK --> FILTER
+    FILTER --> DIVERSE
+    DIVERSE --> PERSONAL
+    
+    PERSONAL --> RESULT
+    RESULT --> CACHE
+    RESULT --> FEEDBACK
+    
+    FEEDBACK --> UB
+    
+    style HR fill:#ff9999
+    style TR fill:#99ff99
+    style CFR fill:#9999ff
+    style CBR fill:#ffff99
+    style NR fill:#ff99ff
+                </div>
+            </div>
+        </div>
+
+        <h2>4. 部署架构图</h2>
+        <div class="diagram-container">
+            <div class="description">
+                <strong>部署说明：</strong>展示了系统在生产环境中的部署架构，包括负载均衡、应用集群、数据库集群、缓存集群等基础设施组件。
+            </div>
+            <div class="diagram">
+                <div class="mermaid" id="deployment-diagram">
+graph TB
+    subgraph "外部访问"
+        USERS[用户]
+        CDN[CDN]
+    end
+
+    subgraph "负载均衡层"
+        LB[负载均衡器<br/>Nginx/HAProxy]
+        SSL[SSL终结]
+    end
+
+    subgraph "应用层 - Kubernetes集群"
+        subgraph "推荐服务Pod"
+            APP1[推荐服务实例1]
+            APP2[推荐服务实例2] 
+            APP3[推荐服务实例3]
+        end
+        
+        subgraph "网关服务Pod"
+            GW1[API网关实例1]
+            GW2[API网关实例2]
+        end
+    end
+
+    subgraph "中间件层"
+        subgraph "缓存集群"
+            REDIS1[Redis主节点]
+            REDIS2[Redis从节点1]
+            REDIS3[Redis从节点2]
+        end
+        
+        subgraph "消息队列"
+            MQ1[RabbitMQ节点1]
+            MQ2[RabbitMQ节点2]
+        end
+    end
+
+    subgraph "数据层"
+        subgraph "数据库集群"
+            DB1[MySQL主库]
+            DB2[MySQL从库1]
+            DB3[MySQL从库2]
+        end
+        
+        subgraph "配置中心"
+            NACOS1[Nacos节点1]
+            NACOS2[Nacos节点2]
+            NACOS3[Nacos节点3]
+        end
+    end
+
+    subgraph "监控层"
+        PROMETHEUS[Prometheus]
+        GRAFANA[Grafana]
+        ALERT[AlertManager]
+        ELK[ELK日志中心]
+    end
+
+    subgraph "存储层"
+        NFS[共享存储<br/>NFS/NAS]
+        BACKUP[备份存储]
+    end
+
+    %% 连接关系
+    USERS --> CDN
+    CDN --> LB
+    LB --> SSL
+    SSL --> GW1
+    SSL --> GW2
+    
+    GW1 --> APP1
+    GW1 --> APP2
+    GW1 --> APP3
+    GW2 --> APP1
+    GW2 --> APP2
+    GW2 --> APP3
+    
+    APP1 --> REDIS1
+    APP2 --> REDIS1
+    APP3 --> REDIS1
+    REDIS1 --> REDIS2
+    REDIS1 --> REDIS3
+    
+    APP1 --> DB1
+    APP2 --> DB1
+    APP3 --> DB1
+    DB1 --> DB2
+    DB1 --> DB3
+    
+    APP1 --> MQ1
+    APP2 --> MQ1
+    APP3 --> MQ1
+    MQ1 --> MQ2
+    
+    APP1 --> NACOS1
+    APP2 --> NACOS2
+    APP3 --> NACOS3
+    
+    PROMETHEUS --> APP1
+    PROMETHEUS --> APP2
+    PROMETHEUS --> APP3
+    PROMETHEUS --> REDIS1
+    PROMETHEUS --> DB1
+    
+    GRAFANA --> PROMETHEUS
+    ALERT --> PROMETHEUS
+    
+    DB1 --> BACKUP
+    REDIS1 --> BACKUP
+    APP1 --> NFS
+    APP2 --> NFS
+    APP3 --> NFS
+                </div>
+            </div>
+        </div>
+
+        <footer style="margin-top: 50px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #666;">
+            <p>主播推荐系统架构图表 - 生成时间: <span id="timestamp"></span></p>
+        </footer>
+    </div>
+
+    <script>
+        // 初始化Mermaid
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'linear'
+            },
+            sequence: {
+                actorMargin: 50,
+                width: 150,
+                height: 65,
+                boxMargin: 10,
+                boxTextMargin: 5,
+                noteMargin: 10,
+                messageMargin: 35
+            }
+        });
+        
+        // 设置时间戳
+        document.getElementById('timestamp').textContent = new Date().toLocaleString('zh-CN');
+        
+        // 添加右键保存图片的提示
+        document.querySelectorAll('.mermaid').forEach(function(element) {
+            element.addEventListener('contextmenu', function(e) {
+                setTimeout(function() {
+                    alert('提示：选择"图片另存为"可以将图表保存为PNG格式');
+                }, 100);
+            });
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.recommend.service.mapper.OrderMapper">
+    
+    <!-- 根据用户ID查询订单列表 -->
+    <select id="selectByUserId" resultType="com.recommend.common.entity.Order">
+        SELECT * FROM `order` WHERE user_id = #{userId}
+    </select>
+    
+    <!-- 根据陪玩ID查询订单列表 -->
+    <select id="selectByMasterId" resultType="com.recommend.common.entity.Order">
+        SELECT * FROM `order` WHERE master_id = #{masterId}
+    </select>
+    
+    <!-- 根据游戏ID查询订单列表 -->
+    <select id="selectByGameId" resultType="com.recommend.common.entity.Order">
+        SELECT * FROM `order` WHERE game_id = #{gameId}
+    </select>
+    
+    <!-- 根据状态查询订单列表 -->
+    <select id="selectByStatus" resultType="com.recommend.common.entity.Order">
+        SELECT * FROM `order` WHERE status = #{status}
+    </select>
+    
+    <!-- 根据时间范围查询订单列表 -->
+    <select id="selectByTimeRange" resultType="com.recommend.common.entity.Order">
+        SELECT * FROM `order` 
+        WHERE create_time BETWEEN #{startTime} AND #{endTime}
+    </select>
+    
+    <!-- 根据金额范围查询订单列表 -->
+    <select id="selectByAmountRange" resultType="com.recommend.common.entity.Order">
+        SELECT * FROM `order` 
+        WHERE amount BETWEEN #{minAmount} AND #{maxAmount}
+    </select>
+    
+    <!-- 统计用户订单数量 -->
+    <select id="countByUserId" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM `order` WHERE user_id = #{userId}
+    </select>
+    
+    <!-- 统计陪玩订单数量 -->
+    <select id="countByMasterId" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM `order` WHERE master_id = #{masterId}
+    </select>
+    
+    <!-- 统计游戏订单数量 -->
+    <select id="countByGameId" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM `order` WHERE game_id = #{gameId}
+    </select>
+    
+    <!-- 更新订单状态 -->
+    <update id="updateStatus">
+        UPDATE `order` 
+        SET status = #{status}, update_time = NOW()
+        WHERE id = #{orderId}
+    </update>
+    
+</mapper> 
