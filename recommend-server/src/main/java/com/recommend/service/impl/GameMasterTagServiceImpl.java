@@ -33,7 +33,12 @@ public class GameMasterTagServiceImpl implements GameMasterTagService {
     public List<GameMasterTag> getGameMasterTagsByTagId(Long tagId) {
         return gameMasterTagMapper.selectByTagId(tagId);
     }
-    
+
+    @Override
+    public GameMasterTag getGameMasterTagByMasterIdAndTagId(Long masterId, Long tagId) {
+        return null;
+    }
+
     @Override
     public List<GameMasterTag> getGameMasterTagsByWeightRange(Double minWeight, Double maxWeight) {
         return gameMasterTagMapper.selectByWeightRange(minWeight, maxWeight);

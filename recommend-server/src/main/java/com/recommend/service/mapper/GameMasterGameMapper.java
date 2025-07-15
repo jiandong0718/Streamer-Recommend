@@ -38,4 +38,8 @@ public interface GameMasterGameMapper extends BaseMapper<GameMasterGame> {
      * 更新陪玩游戏订单数量
      */
     void updateOrderCount(@Param("masterId") Long masterId, @Param("gameId") Long gameId, @Param("orderCount") Integer orderCount);
-} 
+
+    List<GameMasterGame> selectByWeightRange(Double minWeight, Double maxWeight);
+
+    void updateWeight(Long masterId, Long gameId, Double weight);
+}

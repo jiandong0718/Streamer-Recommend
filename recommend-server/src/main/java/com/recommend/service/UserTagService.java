@@ -21,6 +21,11 @@ public interface UserTagService {
     List<UserTag> getUserTagsByWeightRange(Double minWeight, Double maxWeight);
     
     /**
+     * 根据用户ID和标签ID获取用户标签
+     */
+    UserTag getUserTagByUserIdAndTagId(Long userId, Long tagId);
+    
+    /**
      * 添加用户标签
      */
     void addUserTag(UserTag userTag);

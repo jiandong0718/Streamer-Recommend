@@ -293,9 +293,262 @@ public class ContentBasedAlgorithm implements RecommendAlgorithm {
         return gameMasterService.getGameMasterGames(masterId).contains(gameId);
     }
     
+    /**
+     * 计算标签权重
+     * 
+     * @param id 实体ID（用户ID、陪玩师ID或游戏ID）
+     * @param tagId 标签ID
+     * @return 计算后的标签权重
+     */
     private double calculateTagWeight(Long id, Long tagId) {
-        // 实现标签权重计算逻辑
-        return 0.0;
+        // 获取标签基础信息
+        Tag tag = tagService.getTagById(tagId);
+        if (tag == null) {
+            return 0.0;
+        }
+        
+        // 基础权重（标签自身权重）
+        double baseWeight = tag.getWeight() != null ? tag.getWeight().doubleValue() : 1.0;
+        
+        // 根据实体类型计算权重
+        if (userService.getUserById(id) != null) {
+            // 用户标签权重计算
+            return calculateUserTagWeight(id, tagId, baseWeight);
+        } else if (gameMasterService.getGameMasterById(id) != null) {
+            // 陪玩师标签权重计算
+            return calculateMasterTagWeight(id, tagId, baseWeight);
+        } else if (gameService.getGameById(id) != null) {
+            // 游戏标签权重计算
+            return calculateGameTagWeight(id, tagId, baseWeight);
+        }
+        
+        return baseWeight;
+    }
+    
+    /**
+     * 计算用户标签权重
+     */
+    private double calculateUserTagWeight(Long userId, Long tagId, double baseWeight) {
+        // 1. 获取用户标签关联信息
+        UserTag userTag = userTagService.getUserTagByUserIdAndTagId(userId, tagId);
+        if (userTag == null) {
+            return 0.0;
+        }
+        
+        // 2. 标签来源权重
+        double sourceWeight = getSourceWeight(userTag.getSource());
+        
+        // 3. 时间衰减因子
+        double timeDecay = calculateTimeDecay(userTag.getUpdateTime());
+        
+        // 4. 用户行为权重
+        double behaviorWeight = calculateUserBehaviorWeight(userId, tagId);
+        
+        // 5. TF-IDF因子（标签稀有度）
+        double tfIdfFactor = calculateTagTfIdf(tagId);
+        
+        // 6. 用户标签权重（如果有）
+        double userDefinedWeight = userTag.getWeight() != null ? userTag.getWeight().doubleValue() : 1.0;
+        
+        // 7. 综合计算最终权重
+        return baseWeight * sourceWeight * timeDecay * (1 + behaviorWeight) * tfIdfFactor * userDefinedWeight;
+    }
+    
+    /**
+     * 计算陪玩师标签权重
+     */
+    private double calculateMasterTagWeight(Long masterId, Long tagId, double baseWeight) {
+        // 1. 获取陪玩师标签关联信息
+        GameMasterTag masterTag = gameMasterTagService.getGameMasterTagByMasterIdAndTagId(masterId, tagId);
+        if (masterTag == null) {
+            return 0.0;
+        }
+        
+        // 2. 标签来源权重
+        double sourceWeight = getSourceWeight(masterTag.getSource());
+        
+        // 3. 时间衰减因子
+        double timeDecay = calculateTimeDecay(masterTag.getUpdateTime());
+        
+        // 4. 陪玩师接单数据权重
+        double orderWeight = calculateMasterOrderWeight(masterId, tagId);
+        
+        // 5. TF-IDF因子（标签稀有度）
+        double tfIdfFactor = calculateTagTfIdf(tagId);
+        
+        // 6. 陪玩师标签权重（如果有）
+        double masterDefinedWeight = masterTag.getWeight() != null ? masterTag.getWeight().doubleValue() : 1.0;
+        
+        // 7. 综合计算最终权重
+        return baseWeight * sourceWeight * timeDecay * (1 + orderWeight) * tfIdfFactor * masterDefinedWeight;
+    }
+    
+    /**
+     * 计算游戏标签权重
+     */
+    private double calculateGameTagWeight(Long gameId, Long tagId, double baseWeight) {
+        // 1. 游戏标签通常是固定的，权重主要由标签本身和游戏的热度决定
+        
+        // 2. 游戏热度因子（基于游戏的订单量）
+        double popularityFactor = calculateGamePopularity(gameId);
+        
+        // 3. TF-IDF因子（标签稀有度）
+        double tfIdfFactor = calculateTagTfIdf(tagId);
+        
+        // 4. 综合计算最终权重
+        return baseWeight * popularityFactor * tfIdfFactor;
+    }
+    
+    /**
+     * 根据标签来源计算权重系数
+     * 1-系统计算，2-用户/陪玩师选择，3-运营设置
+     */
+    private double getSourceWeight(Integer source) {
+        if (source == null) {
+            return 1.0;
+        }
+        
+        switch (source) {
+            case 1: // 系统计算
+                return 0.8;
+            case 2: // 用户/陪玩师选择
+                return 1.2;
+            case 3: // 运营设置
+                return 1.5;
+            default:
+                return 1.0;
+        }
+    }
+    
+    /**
+     * 计算时间衰减因子
+     * 随着时间推移，标签的权重会逐渐降低
+     */
+    private double calculateTimeDecay(Date updateTime) {
+        if (updateTime == null) {
+            return 0.5; // 默认值
+        }
+        
+        // 计算时间差（天）
+        long diffInMillies = System.currentTimeMillis() - updateTime.getTime();
+        double diffInDays = diffInMillies / (24.0 * 60 * 60 * 1000);
+        
+        // 使用指数衰减函数，半衰期为30天
+        return Math.exp(-Math.log(2) * diffInDays / 30.0);
+    }
+    
+    /**
+     * 计算用户行为权重
+     * 根据用户的行为类型（浏览、收藏、下单等）计算权重
+     */
+    private double calculateUserBehaviorWeight(Long userId, Long tagId) {
+        // 获取用户行为数据
+        List<UserBehavior> behaviors = userBehaviorService.getUserBehaviorsByUserId(userId);
+        
+        double totalWeight = 0.0;
+        
+        for (UserBehavior behavior : behaviors) {
+            // 获取行为目标（陪玩师或游戏）的标签
+            List<Long> targetTags = new ArrayList<>();
+            
+            if ("1".equals(behavior.getTargetType())) { // 陪玩师
+                targetTags = gameMasterTagService.getGameMasterTagsByMasterId(behavior.getTargetId())
+                        .stream()
+                        .map(GameMasterTag::getTagId)
+                        .collect(Collectors.toList());
+            } else if ("2".equals(behavior.getTargetType())) { // 游戏
+                targetTags = tagService.getGameTags(behavior.getTargetId());
+            }
+            
+            // 如果目标包含当前标签
+            if (targetTags.contains(tagId)) {
+                // 根据行为类型赋予不同权重
+                switch (behavior.getType()) {
+                    case "1": // 浏览
+                        totalWeight += 0.2;
+                        break;
+                    case "2": // 收藏
+                        totalWeight += 0.5;
+                        break;
+                    case "3": // 下单
+                        totalWeight += 1.0;
+                        break;
+                    default:
+                        totalWeight += 0.1;
+                }
+                
+                // 考虑时间衰减
+                totalWeight *= calculateTimeDecay(behavior.getCreateTime());
+            }
+        }
+        
+        return totalWeight;
+    }
+    
+    /**
+     * 计算陪玩师接单数据权重
+     */
+    private double calculateMasterOrderWeight(Long masterId, Long tagId) {
+        // 获取陪玩师的订单数据
+        List<Order> orders = orderService.getOrdersByMasterId(masterId);
+        
+        // 计算与标签相关的订单比例
+        long totalOrders = orders.size();
+        if (totalOrders == 0) {
+            return 0.0;
+        }
+        
+        long tagRelatedOrders = orders.stream()
+                .filter(order -> {
+                    // 获取订单关联的游戏标签
+                    List<Long> gameTags = tagService.getGameTags(order.getGameId());
+                    return gameTags.contains(tagId);
+                })
+                .count();
+        
+        return (double) tagRelatedOrders / totalOrders;
+    }
+    
+    /**
+     * 计算游戏热度因子
+     */
+    private double calculateGamePopularity(Long gameId) {
+        // 获取游戏的订单数量
+        List<Order> gameOrders = orderService.getOrdersByGameId(gameId);
+        
+        // 获取所有游戏的平均订单数量
+        double avgOrderCount = getAllGames().stream()
+                .mapToLong(id -> orderService.getOrdersByGameId(id).size())
+                .average()
+                .orElse(1.0);
+        
+        // 计算热度因子（游戏订单数 / 平均订单数）
+        double popularityFactor = gameOrders.size() / avgOrderCount;
+        
+        // 使用对数函数平滑热度差异
+        return 0.5 + 0.5 * Math.log(1 + popularityFactor);
+    }
+    
+    /**
+     * 计算标签的TF-IDF因子
+     * TF-IDF用于衡量标签在系统中的重要性，稀有标签具有更高的权重
+     */
+    private double calculateTagTfIdf(Long tagId) {
+        // 获取标签在系统中的使用频率
+        int tagFrequency = tagService.getTagUsageCount(tagId);
+        
+        // 获取系统中的总标签数
+        int totalTags = tagService.getAllTags().size();
+        
+        if (tagFrequency == 0 || totalTags == 0) {
+            return 1.0;
+        }
+        
+        // 计算逆文档频率（IDF）
+        double idf = Math.log((double) totalTags / tagFrequency);
+        
+        // 归一化到合理范围
+        return 0.5 + 0.5 * idf / Math.log(totalTags);
     }
     
     private double calculateTagWeightSimilarity(Map<Long, Double> weights1, Map<Long, Double> weights2) {

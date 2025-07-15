@@ -4,88 +4,82 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+
 import java.math.BigDecimal;
 import java.util.Date;
 
 /**
- * 主播订单表
+ * 陪玩师订单表
+ * @author liujiandong
  */
 @Data
-@TableName("order")
-public class Order {
-    
+@TableName("game_master_order")
+public class GameMasterOrder {
     @TableId(type = IdType.AUTO)
     private Long id;
-    
+
     /**
      * 用户ID
      */
     private Long userId;
-    
-    /**
-     * 主播ID
-     */
-    private Long streamerId;
 
-    private Long gameId;
-    
     /**
-     * 分类ID
+     * 陪玩师ID
      */
-    private Long categoryId;
-    
+    private Long masterId;
+
+    /**
+     * 游戏ID
+     */
+    private Long gameId;
+
     /**
      * 订单金额
      */
     private BigDecimal amount;
-    
-    /**
-     * 订单时长(分钟)
-     */
-    private Integer duration;
-    
+
     /**
      * 订单状态：0-待支付，1-已支付，2-已完成，3-已取消，4-已退款
      */
     private Integer status;
-    
+
     /**
-     * 订单类型：1-礼物打赏，2-付费连麦，3-专属会员
+     * 订单类型：1-按小时，2-按局数
      */
     private Integer type;
-    
+
     /**
-     * 用户评分(1-5星)
+     * 订单数量（小时数或局数）
+     */
+    private Integer quantity;
+
+    /**
+     * 订单开始时间
+     */
+    private Date startTime;
+
+    /**
+     * 订单结束时间
+     */
+    private Date endTime;
+
+    /**
+     * 用户评分
      */
     private Double rating;
-    
+
     /**
      * 用户评价
      */
     private String comment;
-    
-    /**
-     * 订单备注
-     */
-    private String remark;
-    
+
     /**
      * 创建时间
      */
     private Date createTime;
-    
-    /**
-     * 支付时间
-     */
-    private Date payTime;
-    
-    /**
-     * 完成时间
-     */
-    private Date completeTime;
-    
+
     /**
      * 更新时间
      */
     private Date updateTime;
-} 
+}

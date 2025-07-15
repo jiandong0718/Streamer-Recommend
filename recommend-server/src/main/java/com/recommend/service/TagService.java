@@ -3,6 +3,8 @@ package com.recommend.service;
 import com.recommend.common.entity.Tag;
 import com.recommend.common.entity.UserTag;
 import com.recommend.common.entity.GameMasterTag;
+
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -160,4 +162,11 @@ public interface TagService {
     void batchUpdateGameMasterTags(Long masterId, List<GameMasterTag> gameMasterTags);
 
     List<Long> getGameTags(Long gameId);
+    
+    /**
+     * 获取标签使用次数
+     */
+    int getTagUsageCount(Long tagId);
+
+    Collection<Object> getAllTags();
 }

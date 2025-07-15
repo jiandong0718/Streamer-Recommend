@@ -30,7 +30,12 @@ public class UserTagServiceImpl implements UserTagService {
     public List<UserTag> getUserTagsByWeightRange(Double minWeight, Double maxWeight) {
         return userTagMapper.selectByWeightRange(minWeight, maxWeight);
     }
-    
+
+    @Override
+    public UserTag getUserTagByUserIdAndTagId(Long userId, Long tagId) {
+        return null;
+    }
+
     @Override
     @Transactional
     public void addUserTag(UserTag userTag) {

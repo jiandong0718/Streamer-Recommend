@@ -25,6 +25,11 @@ public interface GameMasterTagService {
     List<GameMasterTag> getGameMasterTagsByTagId(Long tagId);
     
     /**
+     * 根据陪玩ID和标签ID获取游戏陪玩标签
+     */
+    GameMasterTag getGameMasterTagByMasterIdAndTagId(Long masterId, Long tagId);
+    
+    /**
      * 添加游戏陪玩标签
      */
     void addGameMasterTag(GameMasterTag gameMasterTag);
