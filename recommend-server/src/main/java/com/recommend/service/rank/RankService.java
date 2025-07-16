@@ -61,17 +61,75 @@ public class RankService {
     }
     
     private double calculateRelevanceScore(RankingFeatures features) {
-        // 实现相关性得分计算
-        return 0.0;
+        double score = 0.0;
+        
+        // 标签匹配度权重
+        if (features.getTagSimilarity() != null) {
+            score += features.getTagSimilarity() * 0.4;
+        }
+        
+        // 游戏类型匹配度权重
+        if (features.getGameTypeMatch() != null) {
+            score += features.getGameTypeMatch() * 0.3;
+        }
+        
+        // 地区匹配度权重
+        if (features.getRegionMatch() != null) {
+            score += features.getRegionMatch() * 0.2;
+        }
+        
+        // 年龄匹配度权重
+        if (features.getAgeMatch() != null) {
+            score += features.getAgeMatch() * 0.1;
+        }
+        
+        return Math.min(1.0, score);
     }
     
     private double calculateDiversityScore(RankingFeatures features) {
-        // 实现多样性得分计算
-        return 0.0;
+        double score = 0.0;
+        
+        // 游戏类型多样性
+        if (features.getCategoryCount() != null) {
+            score += Math.min(1.0, features.getCategoryCount() / 5.0) * 0.5;
+        }
+        
+        // 技能多样性（基于标签数量）
+        if (features.getDiversityScore() != null) {
+            score += features.getDiversityScore() * 0.3;
+        }
+        
+        // 新颖性得分
+        if (features.getNoveltyScore() != null) {
+            score += features.getNoveltyScore() * 0.2;
+        }
+        
+        return Math.min(1.0, score);
     }
     
     private double calculatePopularityScore(RankingFeatures features) {
-        // 实现热门度得分计算
-        return 0.0;
+        double score = 0.0;
+        
+        // 评分权重
+        if (features.getScore() != null) {
+            score += features.getScore() / 5.0 * 0.4;
+        }
+        
+        // 订单数权重（归一化处理）
+        if (features.getOrderCount() != null) {
+            score += Math.min(1.0, features.getOrderCount() / 200.0) * 0.3;
+        }
+        
+        // 观看数权重
+        if (features.getViewCount() != null) {
+            score += Math.min(1.0, features.getViewCount() / 10000.0) * 0.2;
+        }
+        
+        // 点赞数权重
+        if (features.getLikeCount() != null) {
+            score += Math.min(1.0, features.getLikeCount() / 1000.0) * 0.1;
+        }
+        
+        return Math.min(1.0, score);
     }
 } 
