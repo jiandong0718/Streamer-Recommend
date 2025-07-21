@@ -4,6 +4,7 @@ import com.recommend.algorithm.RecommendAlgorithm;
 import com.recommend.algorithm.RecommendMetrics;
 import com.recommend.common.entity.GameMaster;
 import com.recommend.common.entity.Game;
+import com.recommend.common.entity.UserProfile;
 import com.recommend.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -313,8 +314,29 @@ public class CollaborativeFilteringAlgorithm implements RecommendAlgorithm {
                 .collect(Collectors.toList());
     }
     
+    /**
+     * 判断陪玩师是否支持指定游戏
+     */
     private boolean isMasterGameMatch(Long masterId, Long gameId) {
-        return gameMasterService.getGameMasterGames(masterId).contains(gameId);
+        try {
+            GameMaster master = gameMasterService.getGameMasterById(masterId);
+            Game game = gameService.getGameById(gameId);
+            
+            if (master == null || game == null) {
+                return false;
+            }
+            
+            // 检查陪玩师的游戏类型是否包含该游戏的类型
+            if (master.getGameTypes() != null && game.getType() != null) {
+                List<String> masterGameTypes = Arrays.asList(master.getGameTypes().split(","));
+                return masterGameTypes.contains(game.getType());
+            }
+            
+            return false;
+        } catch (Exception e) {
+            log.error("判断陪玩师游戏匹配失败，陪玩师ID: {}, 游戏ID: {}", masterId, gameId, e);
+            return false;
+        }
     }
     
     private List<Double> getMasterFeatures(Long masterId) {

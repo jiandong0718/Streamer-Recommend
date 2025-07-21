@@ -50,7 +50,9 @@ public class RankingFeatures {
     private Double timeDecayScore;
     private Boolean isOnline;
     private Double availabilityScore;
-    
+
+    private Double score;
+
     // 个性化特征
     private Double personalizedScore;
     private Double historicalPreference;

@@ -33,4 +33,9 @@ public interface UserTagMapper extends BaseMapper<UserTag> {
      * 删除用户标签
      */
     void deleteByUserIdAndTagId(@Param("userId") Long userId, @Param("tagId") Long tagId);
+    
+    /**
+     * 根据用户ID删除所有标签关联
+     */
+    void deleteByUserId(@Param("userId") Long userId);
 } 

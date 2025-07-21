@@ -43,8 +43,13 @@ public class GameMaster {
     
     private Integer status;
     
+    private BigDecimal price;
+    
+    private String gameTypes;
+    
     private List<Game> games;
-    private List<String> tags;
+
+    private String tags;  // 改为String类型，存储逗号分隔的标签
     
     private Date createTime;
     

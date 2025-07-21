@@ -38,4 +38,14 @@ public interface GameMasterMapper extends BaseMapper<GameMaster> {
      * 根据标签查询陪玩列表
      */
     List<GameMaster> findByTags(@Param("tags") List<String> tags);
+    
+    /**
+     * 根据游戏ID查询陪玩师列表
+     */
+    List<GameMaster> selectByGameId(@Param("gameId") Long gameId);
+    
+    /**
+     * 根据游戏类型查询陪玩师列表
+     */
+    List<GameMaster> selectByGameTypes(@Param("gameTypes") String gameTypes);
 } 

@@ -28,4 +28,6 @@ public interface TagMapper extends BaseMapper<Tag> {
      * 根据权重范围查询标签列表
      */
     List<Tag> selectByWeightRange(@Param("minWeight") Double minWeight, @Param("maxWeight") Double maxWeight);
-} 
+
+    List<Tag> selectByType(Integer type);
+}

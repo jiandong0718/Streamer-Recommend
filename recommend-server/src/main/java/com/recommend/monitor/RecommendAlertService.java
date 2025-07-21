@@ -18,7 +18,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class RecommendAlertService {
 
-    public static AlertLevel alertLevel;
     private final RecommendMonitorService monitorService;
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     

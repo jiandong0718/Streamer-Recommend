@@ -70,7 +70,7 @@ public class FilterService {
         // 2. 标签匹配
         if (userProfile.getTags() != null && !userProfile.getTags().isEmpty()) {
             List<String> userTags = Arrays.asList(userProfile.getTags().split(","));
-            boolean tagMatched = master.getTags().stream()
+            boolean tagMatched = Arrays.stream(master.getTags().split(","))
                     .anyMatch(userTags::contains);
             if (!tagMatched) {
                 return false;

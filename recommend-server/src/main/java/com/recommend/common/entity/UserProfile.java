@@ -38,6 +38,8 @@ public class UserProfile {
     private String onlineStatus;
 
     private String tags;
+
+    private Long orderCount;
     
     private Date createTime;
     private Date updateTime;

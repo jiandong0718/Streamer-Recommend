@@ -214,7 +214,7 @@ public class TagServiceImpl implements TagService {
             }
             
             // 获取同类型的标签
-            List<Tag> candidateTags = getTagsByTypeAndCategory(sourceTag.getType(), sourceTag.getCategory());
+            List<Tag> candidateTags = getTagsByTypeAndCategory(Integer.valueOf(sourceTag.getType()), sourceTag.getCategory());
             
             // 计算相似度并排序
             return candidateTags.stream()

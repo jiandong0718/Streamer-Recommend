@@ -88,4 +88,20 @@ public class Order {
      * 更新时间
      */
     private Date updateTime;
+    
+    /**
+     * 获取陪玩师ID（兼容性方法）
+     * @return 陪玩师ID
+     */
+    public Long getMasterId() {
+        return this.streamerId;
+    }
+    
+    /**
+     * 设置陪玩师ID（兼容性方法）
+     * @param masterId 陪玩师ID
+     */
+    public void setMasterId(Long masterId) {
+        this.streamerId = masterId;
+    }
 } 

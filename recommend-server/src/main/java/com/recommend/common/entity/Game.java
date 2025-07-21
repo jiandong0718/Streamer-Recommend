@@ -18,6 +18,8 @@ public class Game {
     private String type;
     
     private String icon;
+
+    private String tags;
     
     private String description;
     

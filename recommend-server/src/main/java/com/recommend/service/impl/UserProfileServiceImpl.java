@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import lombok.extern.slf4j.Slf4j;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -71,5 +72,48 @@ public class UserProfileServiceImpl implements UserProfileService {
         
         profile.setTags(JSON.toJSONString(tags));
         updateUserProfile(profile);
+    }
+    
+    @Override
+    public List<UserProfile> getAllUserProfiles() {
+        try {
+            return userProfileMapper.selectList(null);
+        } catch (Exception e) {
+            log.error("获取所有用户画像失败", e);
+            return new ArrayList<>();
+        }
+    }
+    
+    @Override
+    public void createUserProfile(UserProfile userProfile) {
+        try {
+            userProfile.setCreateTime(new Date());
+            userProfile.setUpdateTime(new Date());
+            userProfileMapper.insert(userProfile);
+            
+            // 写入缓存
+            String cacheKey = PROFILE_CACHE_KEY + userProfile.getUserId();
+            redisTemplate.opsForValue().set(cacheKey, JSON.toJSONString(userProfile), 1, TimeUnit.HOURS);
+        } catch (Exception e) {
+            log.error("创建用户画像失败，用户ID: {}", userProfile.getUserId(), e);
+            throw new RuntimeException("创建用户画像失败", e);
+        }
+    }
+    
+    @Override
+    public void deleteUserProfile(Long userId) {
+        try {
+            userProfileMapper.delete(
+                new LambdaQueryWrapper<UserProfile>()
+                    .eq(UserProfile::getUserId, userId)
+            );
+            
+            // 删除缓存
+            String cacheKey = PROFILE_CACHE_KEY + userId;
+            redisTemplate.delete(cacheKey);
+        } catch (Exception e) {
+            log.error("删除用户画像失败，用户ID: {}", userId, e);
+            throw new RuntimeException("删除用户画像失败", e);
+        }
     }
 } 
